@@ -32,11 +32,11 @@ import {
 } from "lucide-react";
 import type { Thread, Post, PostListResponse, MessageResponse } from "@/types";
 
-export default function ThreadDetailPage() {
+  export default function ThreadDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user, role } = useAuthStore();
-  const threadId = params.id as string;
+  const slug = params.id as string;
   const [thread, setThread] = useState<Thread | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,20 +48,28 @@ export default function ThreadDetailPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [threadsRes, postsRes] = await Promise.all([
-          api.get<{ data: Thread[] }>("/api/threads", {
-            params: { limit: 100 },
-          }),
-          api.get<PostListResponse>(`/api/threads/${threadId}/posts`),
-        ]);
-        const foundThread = threadsRes.data.data?.find(
-          (t) => t.id === threadId
-        );
-        if (foundThread) {
-          setThread(foundThread);
-          setLiked(foundThread.is_liked || false);
-          setLikesCount(foundThread.likes_count || 0);
+        // Fetch thread details by slug
+        const threadRes = await api.get<Thread>(`/api/threads/slug/${slug}`);
+        const threadData = threadRes.data;
+        
+        setThread(threadData);
+  // Fetch thread like status
+        try {
+          const likeRes = await api.get<{ liked: boolean }>(
+            `/api/threads/${threadData.id}/like`
+          );
+          setLiked(likeRes.data.liked);
+        } catch {
+          // If 401/403 or error, default to false or keep existing
+          setLiked(threadData.is_liked || false);
         }
+
+        setLikesCount(threadData.likes_count || 0);
+
+        // Fetch posts using the actual thread ID
+        const postsRes = await api.get<PostListResponse>(
+          `/api/threads/${threadData.id}/posts`
+        );
         setPosts(postsRes.data.data || []);
       } catch (error) {
         console.error("Failed to fetch thread:", error);
@@ -70,17 +78,18 @@ export default function ThreadDetailPage() {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [threadId]);
+    if (slug) fetchData();
+  }, [slug]);
 
   const handleLike = async () => {
+    if (!thread) return;
     try {
       if (liked) {
-        await api.delete(`/api/threads/${threadId}/like`);
+        await api.delete(`/api/threads/${thread.id}/like`);
         setLiked(false);
         setLikesCount((p) => p - 1);
       } else {
-        await api.post(`/api/threads/${threadId}/like`);
+        await api.post(`/api/threads/${thread.id}/like`);
         setLiked(true);
         setLikesCount((p) => p + 1);
       }
@@ -88,12 +97,13 @@ export default function ThreadDetailPage() {
       toast.error("Gagal memproses");
     }
   };
+
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!replyContent.trim()) return;
+    if (!replyContent.trim() || !thread) return;
     setSubmitting(true);
     try {
-      const response = await api.post<Post>(`/api/threads/${threadId}/posts`, {
+      const response = await api.post<Post>(`/api/threads/${thread.id}/posts`, {
         content: replyContent,
       });
       setPosts((prev) => [...prev, response.data]);
@@ -105,16 +115,19 @@ export default function ThreadDetailPage() {
       setSubmitting(false);
     }
   };
+
   const handleDeleteThread = async () => {
+    if (!thread) return;
     if (!confirm("Apakah Anda yakin ingin menghapus diskusi ini?")) return;
     try {
-      await api.delete<MessageResponse>(`/api/threads/${threadId}`);
+      await api.delete<MessageResponse>(`/api/threads/${thread.id}`);
       toast.success("Diskusi berhasil dihapus");
       router.push("/threads");
     } catch {
       toast.error("Gagal menghapus diskusi");
     }
   };
+
   const handleDeletePost = async (postId: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus balasan ini?")) return;
     try {
@@ -207,7 +220,7 @@ export default function ThreadDetailPage() {
                 <DropdownMenuContent align="end">
                   {isOwner && (
                     <DropdownMenuItem asChild>
-                      <Link href={`/threads/${threadId}/edit`}>
+                      <Link href={`/threads/${slug}/edit`}>
                         <Pencil className="h-4 w-4 mr-2" />
                         Edit
                       </Link>
@@ -255,54 +268,13 @@ export default function ThreadDetailPage() {
         <h2 className="text-lg font-semibold">Balasan ({posts.length})</h2>
         {posts.length > 0 ? (
           posts.map((post) => (
-            <Card key={post.id}>
-              <CardContent className="pt-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={post.author_avatar} />
-                      <AvatarFallback>
-                        {post.author[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">
-                          {post.author}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(post.created_at).toLocaleDateString(
-                            "id-ID"
-                          )}
-                        </span>
-                      </div>
-                      <div
-                        className="text-sm mt-1 prose prose-sm dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{ __html: post.content }}
-                      />
-                    </div>
-                  </div>
-                  {(post.author === user?.username || isAdmin) && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleDeletePost(post.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Hapus
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <PostItem
+              key={post.id}
+              post={post}
+              currentUser={user}
+              isAdmin={isAdmin}
+              onDelete={handleDeletePost}
+            />
           ))
         ) : (
           <Card>
@@ -340,5 +312,111 @@ export default function ThreadDetailPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function PostItem({
+  post,
+  currentUser,
+  isAdmin,
+  onDelete,
+}: {
+  post: Post;
+  currentUser: any;
+  isAdmin: boolean;
+  onDelete: (id: string) => void;
+}) {
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes_count || 0);
+
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      try {
+        const res = await api.get<{ liked: boolean }>(
+          `/api/posts/${post.id}/like`
+        );
+        setLiked(res.data.liked);
+      } catch {
+        setLiked(post.is_liked || false);
+      }
+    };
+    fetchLikeStatus();
+  }, [post.id]);
+
+  const handleLike = async () => {
+    try {
+      if (liked) {
+        await api.delete(`/api/posts/${post.id}/like`);
+        setLiked(false);
+        setLikesCount((p) => p - 1);
+      } else {
+        await api.post(`/api/posts/${post.id}/like`);
+        setLiked(true);
+        setLikesCount((p) => p + 1);
+      }
+    } catch {
+      toast.error("Gagal memproses like post");
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3 w-full">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={post.author_avatar} />
+              <AvatarFallback>{post.author[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm">{post.author}</span>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(post.created_at).toLocaleDateString("id-ID")}
+                </span>
+              </div>
+              <div
+                className="text-sm mt-1 prose prose-sm dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+              {/* Post Actions (Like) */}
+              <div className="flex items-center gap-4 mt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-8 px-2 gap-1.5 ${
+                    liked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
+                  }`}
+                  onClick={handleLike}
+                >
+                  <Heart
+                    className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`}
+                  />
+                  <span className="text-xs">{likesCount}</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+          {(post.author === currentUser?.username || isAdmin) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => onDelete(post.id)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

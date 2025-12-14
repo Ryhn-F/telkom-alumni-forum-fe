@@ -121,14 +121,14 @@ function ThreadsContent() {
               </div>
             </form>
             <Select
-              value={categoryId}
-              onValueChange={(v) => updateFilter("category_id", v)}
+              value={categoryId || "all"}
+              onValueChange={(v) => updateFilter("category_id", v === "all" ? "" : v)}
             >
               <SelectTrigger className="w-full lg:w-[180px]">
                 <SelectValue placeholder="Semua Kategori" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Semua Kategori</SelectItem>
+                <SelectItem value="all">Semua Kategori</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
@@ -137,28 +137,30 @@ function ThreadsContent() {
               </SelectContent>
             </Select>
             <Select
-              value={audience}
-              onValueChange={(v) => updateFilter("audience", v)}
+              value={audience || "all_audiences"}
+              onValueChange={(v) =>
+                updateFilter("audience", v === "all_audiences" ? "" : v)
+              }
             >
               <SelectTrigger className="w-full lg:w-[150px]">
                 <SelectValue placeholder="Semua" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Semua</SelectItem>
+                <SelectItem value="all_audiences">Semua</SelectItem>
                 <SelectItem value="semua">Umum</SelectItem>
                 <SelectItem value="guru">Guru</SelectItem>
                 <SelectItem value="siswa">Siswa</SelectItem>
               </SelectContent>
             </Select>
             <Select
-              value={sortBy}
-              onValueChange={(v) => updateFilter("sort_by", v)}
+              value={sortBy || "newest"}
+              onValueChange={(v) => updateFilter("sort_by", v === "newest" ? "" : v)}
             >
               <SelectTrigger className="w-full lg:w-[150px]">
                 <SelectValue placeholder="Terbaru" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Terbaru</SelectItem>
+                <SelectItem value="newest">Terbaru</SelectItem>
                 <SelectItem value="popular">Terpopuler</SelectItem>
               </SelectContent>
             </Select>
@@ -179,7 +181,7 @@ function ThreadsContent() {
           ))
         ) : threads.length > 0 ? (
           threads.map((thread) => (
-            <Link key={thread.id} href={`/threads/${thread.id}`}>
+            <Link key={thread.id} href={`/threads/${thread.slug}`}>
               <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                 <CardContent className="pt-4">
                   <div className="flex items-start justify-between gap-4">
