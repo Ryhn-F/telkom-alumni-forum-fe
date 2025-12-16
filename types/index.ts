@@ -107,7 +107,7 @@ export interface CreateThreadRequest {
   attachment_ids?: number[];
 }
 
-export interface UpdateThreadRequest extends CreateThreadRequest {}
+export type UpdateThreadRequest = CreateThreadRequest;
 
 // ==================== Post (Reply) ====================
 export interface Post {

@@ -31,6 +31,8 @@ import {
   Loader2,
 } from "lucide-react";
 import type { Thread, Post, PostListResponse, MessageResponse } from "@/types";
+import { AttachmentUpload } from "@/components/AttachmentUpload";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 
   export default function ThreadDetailPage() {
   const params = useParams();
@@ -44,6 +46,7 @@ import type { Thread, Post, PostListResponse, MessageResponse } from "@/types";
   const [submitting, setSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const [replyAttachmentIds, setReplyAttachmentIds] = useState<number[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,9 +108,11 @@ import type { Thread, Post, PostListResponse, MessageResponse } from "@/types";
     try {
       const response = await api.post<Post>(`/api/threads/${thread.id}/posts`, {
         content: replyContent,
+        attachment_ids: replyAttachmentIds.length > 0 ? replyAttachmentIds : undefined,
       });
       setPosts((prev) => [...prev, response.data]);
       setReplyContent("");
+      setReplyAttachmentIds([]);
       toast.success("Balasan berhasil dikirim");
     } catch {
       toast.error("Gagal mengirim balasan");
@@ -239,10 +244,7 @@ import type { Thread, Post, PostListResponse, MessageResponse } from "@/types";
           </div>
         </CardHeader>
         <CardContent>
-          <div
-            className="prose prose-sm dark:prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: thread.content }}
-          />
+          <MarkdownRenderer content={thread.content} />
           <div className="flex items-center gap-4 mt-6 pt-4 border-t">
             <Button
               variant={liked ? "default" : "outline"}
@@ -294,20 +296,28 @@ import type { Thread, Post, PostListResponse, MessageResponse } from "@/types";
               onChange={(e) => setReplyContent(e.target.value)}
               rows={4}
             />
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                disabled={submitting || !replyContent.trim()}
-                className="gap-2"
-              >
-                {submitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-                Kirim Balasan
-              </Button>
-            </div>
+              <div className="flex justify-between items-center">
+                <AttachmentUpload
+                  onUploadSuccess={(id, url) => {
+                    setReplyAttachmentIds((prev) => [...prev, id]);
+                    const imageMarkdown = `\n![Attachment](${url})\n`;
+                    setReplyContent((prev) => prev + imageMarkdown);
+                  }}
+                  disabled={submitting}
+                />
+                <Button
+                  type="submit"
+                  disabled={submitting || !replyContent.trim()}
+                  className="gap-2"
+                >
+                  {submitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  Kirim Balasan
+                </Button>
+              </div>
           </form>
         </CardContent>
       </Card>
@@ -375,10 +385,9 @@ function PostItem({
                   {new Date(post.created_at).toLocaleDateString("id-ID")}
                 </span>
               </div>
-              <div
-                className="text-sm mt-1 prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-              />
+              <div className="text-sm mt-1">
+                 <MarkdownRenderer content={post.content} />
+              </div>
               {/* Post Actions (Like) */}
               <div className="flex items-center gap-4 mt-3">
                 <Button
