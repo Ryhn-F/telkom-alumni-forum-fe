@@ -24,9 +24,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import type { Category, CategoryListResponse, MessageResponse } from "@/types";
-import { AttachmentUpload } from "@/components/AttachmentUpload";
-import { MarkdownRenderer } from "@/components/MarkdownRenderer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TiptapEditor } from "@/components/TiptapEditor";
 
 export default function NewThreadPage() {
   const router = useRouter();
@@ -152,48 +150,13 @@ export default function NewThreadPage() {
               <Label htmlFor="content">
                 Konten <span className="text-destructive">*</span>
               </Label>
-              <Tabs defaultValue="write" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="write">Tulis</TabsTrigger>
-                  <TabsTrigger value="preview">Preview</TabsTrigger>
-                </TabsList>
-                <TabsContent value="write" className="space-y-2">
-                  <Textarea
-                    id="content"
-                    placeholder="Tulis isi diskusi Anda di sini... (Support Markdown)"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    disabled={loading}
-                    rows={10}
-                    required
-                  />
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs text-muted-foreground">
-                      * Mendukung format Markdown
-                    </p>
-                    <AttachmentUpload
-                       onUploadSuccess={(id, url) => {
-                         setAttachmentIds((prev) => [...prev, id]);
-                         // Append markdown to content
-                         const imageMarkdown = `\n![Attachment](${url})\n`;
-                         setContent((prev) => prev + imageMarkdown);
-                       }}
-                       disabled={loading}
-                     />
-                  </div>
-                </TabsContent>
-                <TabsContent value="preview">
-                  <div className="min-h-[200px] p-4 border rounded-md bg-card">
-                    {content ? (
-                      <MarkdownRenderer content={content} />
-                    ) : (
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        Belum ada konten untuk ditampilkan
-                      </p>
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <TiptapEditor
+                value={content}
+                onChange={setContent}
+                onAttachmentUpload={(id) => setAttachmentIds((prev) => [...prev, id])}
+                isLoading={loading}
+                placeholder="Tulis diskusi Anda di sini... (Anda bisa menyisipkan gambar)"
+              />
             </div>
             <div className="flex justify-end gap-2">
               <Button

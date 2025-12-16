@@ -31,8 +31,8 @@ import {
   Loader2,
 } from "lucide-react";
 import type { Thread, Post, PostListResponse, MessageResponse } from "@/types";
-import { AttachmentUpload } from "@/components/AttachmentUpload";
-import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { TiptapEditor } from "@/components/TiptapEditor";
+import { RichTextDisplay } from "@/components/RichTextDisplay";
 
   export default function ThreadDetailPage() {
   const params = useParams();
@@ -244,7 +244,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
           </div>
         </CardHeader>
         <CardContent>
-          <MarkdownRenderer content={thread.content} />
+          <RichTextDisplay content={thread.content} />
           <div className="flex items-center gap-4 mt-6 pt-4 border-t">
             <Button
               variant={liked ? "default" : "outline"}
@@ -290,34 +290,27 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
       <Card>
         <CardContent className="pt-4">
           <form onSubmit={handleReply} className="space-y-4">
-            <Textarea
-              placeholder="Tulis balasan Anda..."
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              rows={4}
+             <TiptapEditor
+               value={replyContent}
+               onChange={setReplyContent}
+               onAttachmentUpload={(id) => setReplyAttachmentIds((prev) => [...prev, id])}
+               isLoading={submitting}
+               placeholder="Tulis balasan Anda..."
             />
-              <div className="flex justify-between items-center">
-                <AttachmentUpload
-                  onUploadSuccess={(id, url) => {
-                    setReplyAttachmentIds((prev) => [...prev, id]);
-                    const imageMarkdown = `\n![Attachment](${url})\n`;
-                    setReplyContent((prev) => prev + imageMarkdown);
-                  }}
-                  disabled={submitting}
-                />
-                <Button
-                  type="submit"
-                  disabled={submitting || !replyContent.trim()}
-                  className="gap-2"
-                >
-                  {submitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                  Kirim Balasan
-                </Button>
-              </div>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={submitting || !replyContent.trim() || replyContent === "<p></p>"}
+                className="gap-2"
+              >
+                {submitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                Kirim Balasan
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
@@ -386,7 +379,7 @@ function PostItem({
                 </span>
               </div>
               <div className="text-sm mt-1">
-                 <MarkdownRenderer content={post.content} />
+                 <RichTextDisplay content={post.content} />
               </div>
               {/* Post Actions (Like) */}
               <div className="flex items-center gap-4 mt-3">
