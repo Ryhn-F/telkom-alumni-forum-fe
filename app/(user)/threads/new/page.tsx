@@ -62,8 +62,13 @@ export default function NewThreadPage() {
       });
       toast.success("Diskusi berhasil dibuat");
       router.push("/threads");
-    } catch {
-      toast.error("Gagal membuat diskusi");
+    } catch (error: any) {
+      // Try to get the error message from backend response
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Gagal membuat diskusi";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
