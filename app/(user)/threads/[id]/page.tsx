@@ -144,6 +144,10 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
     }
   };
 
+  const handleUpdatePost = (updatedPost: Post) => {
+    setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+  };
+
   const isOwner = thread?.author === user?.username;
   const isAdmin = role?.name === "admin";
 
@@ -276,6 +280,7 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
               currentUser={user}
               isAdmin={isAdmin}
               onDelete={handleDeletePost}
+              onUpdate={handleUpdatePost}
             />
           ))
         ) : (
@@ -323,14 +328,29 @@ function PostItem({
   currentUser,
   isAdmin,
   onDelete,
+  onUpdate,
 }: {
   post: Post;
   currentUser: any;
   isAdmin: boolean;
   onDelete: (id: string) => void;
+  onUpdate: (post: Post) => void;
 }) {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes_count || 0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editAttachmentIds, setEditAttachmentIds] = useState<number[]>(
+    (post.attachments || []).map((a) => a.id)
+  );
+
+  useEffect(() => {
+    // Sync state if prop updates
+    setEditContent(post.content);
+    setEditAttachmentIds((post.attachments || []).map((a) => a.id));
+    setLikesCount(post.likes_count || 0);
+  }, [post]);
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -344,7 +364,7 @@ function PostItem({
       }
     };
     fetchLikeStatus();
-  }, [post.id]);
+  }, [post.id, post.is_liked]);
 
   const handleLike = async () => {
     try {
@@ -362,6 +382,28 @@ function PostItem({
     }
   };
 
+  const handleSave = async () => {
+    if (!editContent.trim()) {
+      toast.error("Konten tidak boleh kosong");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const res = await api.put<Post>(`/api/posts/${post.id}`, {
+        content: editContent,
+        attachment_ids: editAttachmentIds,
+      });
+      onUpdate(res.data);
+      setIsEditing(false);
+      toast.success("Balasan berhasil diperbarui");
+    } catch (error) {
+      toast.error("Gagal memperbarui balasan");
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <Card>
       <CardContent className="pt-4">
@@ -371,35 +413,58 @@ function PostItem({
               <AvatarImage src={post.author_avatar} />
               <AvatarFallback>{post.author[0].toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="flex-1">
+            <div className="flex-1 space-y-2">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">{post.author}</span>
                 <span className="text-xs text-muted-foreground">
                   {new Date(post.created_at).toLocaleDateString("id-ID")}
                 </span>
               </div>
-              <div className="text-sm mt-1">
-                 <RichTextDisplay content={post.content} />
-              </div>
-              {/* Post Actions (Like) */}
-              <div className="flex items-center gap-4 mt-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`h-8 px-2 gap-1.5 ${
-                    liked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
-                  }`}
-                  onClick={handleLike}
-                >
-                  <Heart
-                    className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`}
-                  />
-                  <span className="text-xs">{likesCount}</span>
-                </Button>
-              </div>
+              
+              {isEditing ? (
+                 <div className="space-y-4">
+                    <TiptapEditor
+                      value={editContent}
+                      onChange={setEditContent}
+                      onAttachmentUpload={(id) => setEditAttachmentIds((prev) => [...prev, id])}
+                      isLoading={isSaving}
+                    />
+                    <div className="flex gap-2">
+                        <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Simpan
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} disabled={isSaving}>
+                            Batal
+                        </Button>
+                    </div>
+                </div>
+              ) : (
+                <>
+                  <div className="text-sm mt-1">
+                    <RichTextDisplay content={post.content} />
+                  </div>
+                  {/* Post Actions (Like) */}
+                  <div className="flex items-center gap-4 mt-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 px-2 gap-1.5 ${
+                        liked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
+                      }`}
+                      onClick={handleLike}
+                    >
+                      <Heart
+                        className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`}
+                      />
+                      <span className="text-xs">{likesCount}</span>
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          {(post.author === currentUser?.username || isAdmin) && (
+          {!isEditing && (post.author === currentUser?.username || isAdmin) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -407,6 +472,12 @@ function PostItem({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                 {post.author === currentUser?.username && (
+                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                    </DropdownMenuItem>
+                 )}
                 <DropdownMenuItem
                   onClick={() => onDelete(post.id)}
                   className="text-destructive"

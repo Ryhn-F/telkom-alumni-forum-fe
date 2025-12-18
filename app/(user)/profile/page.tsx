@@ -23,6 +23,8 @@ import {
   Calendar,
   GraduationCap,
   FileText,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import type { Thread, ThreadListResponse } from "@/types";
 
@@ -30,22 +32,23 @@ export default function ProfilePage() {
   const { user, role, profile } = useAuthStore();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 5; // Show 5 per page
 
   useEffect(() => {
     if (user?.username) {
+      setLoading(true);
       api
-        .get<ThreadListResponse>("/api/threads", { params: { limit: 100 } })
-        .then((res) =>
-          setThreads(
-            (res.data.data || [])
-              .filter((t) => t.author === user.username)
-              .slice(0, 5)
-          )
-        )
+        .get<ThreadListResponse>("/api/threads/me", { params: { page, limit } })
+        .then((res) => {
+          setThreads(res.data.data || []);
+          setTotalPages(res.data.meta.total_pages);
+        })
         .catch(console.error)
         .finally(() => setLoading(false));
     }
-  }, [user?.username]);
+  }, [user?.username, page]);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -88,7 +91,7 @@ export default function ProfilePage() {
                 )}
               </div>
               {profile?.bio && (
-                <p className="text-sm text-muted-foreground mt-4">
+                  <p className="text-sm text-muted-foreground mt-4">
                   {profile.bio}
                 </p>
               )}
@@ -150,7 +153,7 @@ export default function ProfilePage() {
             <div className="space-y-3">
               {threads.map((thread, index) => (
                 <div key={thread.id}>
-                  <Link href={`/threads/${thread.id}`}>
+                  <Link href={`/threads/${thread.slug}`}>
                     <div className="p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                       <h4 className="font-medium text-sm line-clamp-1">
                         {thread.title}
@@ -161,7 +164,7 @@ export default function ProfilePage() {
                         </Badge>
                         <span>{thread.views} views</span>
                         <span>•</span>
-                        <span>
+                         <span>
                           {new Date(thread.created_at).toLocaleDateString(
                             "id-ID"
                           )}
@@ -172,11 +175,33 @@ export default function ProfilePage() {
                   {index < threads.length - 1 && <Separator className="my-2" />}
                 </div>
               ))}
-              <Link href="/threads?author=me">
-                <Button variant="ghost" size="sm" className="w-full mt-2">
-                  Lihat Semua Diskusi
-                </Button>
-              </Link>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 mt-2 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Sebelumnya
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    Halaman {page} dari {totalPages}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  >
+                    Selanjutnya
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
