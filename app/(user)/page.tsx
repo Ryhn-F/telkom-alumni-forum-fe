@@ -35,9 +35,9 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [recentRes, popularRes] = await Promise.all([
-          api.get<ThreadListResponse>("/api/threads", { params: { limit: 5 } }),
+          api.get<ThreadListResponse>("/api/threads", { params: { page: 1, limit: 5 } }),
           api.get<ThreadListResponse>("/api/threads", {
-            params: { limit: 5, sort_by: "popular" },
+            params: { page: 1, limit: 5, sort_by: "popular" },
           }),
         ]);
         setRecentThreads(recentRes.data.data || []);
