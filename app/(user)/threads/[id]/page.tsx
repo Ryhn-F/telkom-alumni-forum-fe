@@ -276,13 +276,19 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
               </div>
               <h1 className="text-2xl font-bold">{thread.title}</h1>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={thread.author_avatar} />
-                  <AvatarFallback>
-                    {thread.author[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span>{thread.author}</span>
+                <Link
+                  href={`/users/${thread.author}`}
+                  className="flex items-center gap-2 hover:text-primary transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={thread.author_avatar} />
+                    <AvatarFallback>
+                      {thread.author[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hover:underline">{thread.author}</span>
+                </Link>
                 <span>•</span>
                 <span>
                   {new Date(thread.created_at).toLocaleDateString("id-ID", {
@@ -606,13 +612,20 @@ function PostItem({
 
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3 w-full">
-              <Avatar className={isNested ? "h-7 w-7" : "h-8 w-8"}>
-                <AvatarImage src={post.author_avatar} />
-                <AvatarFallback>{post.author[0].toUpperCase()}</AvatarFallback>
-              </Avatar>
+              <Link href={`/users/${post.author}`}>
+                <Avatar className={`${isNested ? "h-7 w-7" : "h-8 w-8"} hover:ring-2 hover:ring-primary/50 transition-all`}>
+                  <AvatarImage src={post.author_avatar} />
+                  <AvatarFallback>{post.author[0].toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </Link>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className={`font-medium ${isNested ? "text-xs" : "text-sm"}`}>{post.author}</span>
+                  <Link 
+                    href={`/users/${post.author}`}
+                    className={`font-medium ${isNested ? "text-xs" : "text-sm"} hover:text-primary hover:underline transition-colors`}
+                  >
+                    {post.author}
+                  </Link>
                   <span className="text-xs text-muted-foreground">
                     {new Date(post.created_at).toLocaleDateString("id-ID")}
                   </span>

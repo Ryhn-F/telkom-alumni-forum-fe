@@ -204,7 +204,14 @@ function ThreadsContent() {
                             ? "Guru"
                             : "Siswa"}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
+                        <span
+                          className="text-xs text-muted-foreground hover:text-primary hover:underline cursor-pointer transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.location.href = `/users/${thread.author}`;
+                          }}
+                        >
                           oleh {thread.author}
                         </span>
                         <span className="text-xs text-muted-foreground">

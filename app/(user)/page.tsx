@@ -152,7 +152,14 @@ export default function HomePage() {
                           <Badge variant="secondary" className="text-xs">
                             {thread.category_name}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
+                          <span
+                            className="text-xs text-muted-foreground hover:text-primary hover:underline cursor-pointer transition-colors"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              window.location.href = `/users/${thread.author}`;
+                            }}
+                          >
                             oleh {thread.author}
                           </span>
                         </div>
@@ -204,7 +211,14 @@ export default function HomePage() {
                         <h4 className="font-medium text-sm line-clamp-1">
                           {thread.title}
                         </h4>
-                        <span className="text-xs text-muted-foreground">
+                        <span
+                          className="text-xs text-muted-foreground hover:text-primary hover:underline cursor-pointer transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.location.href = `/users/${thread.author}`;
+                          }}
+                        >
                           {thread.author}
                         </span>
                       </div>
