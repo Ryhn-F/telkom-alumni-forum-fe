@@ -228,3 +228,37 @@ export interface PostQueryParams {
 export interface CategoryQueryParams {
   search?: string;
 }
+
+// ==================== Notification ====================
+export interface NotificationActor {
+  id: string;
+  username: string;
+  avatar_url?: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  entity_id: string;
+  entity_type: "thread" | "post";
+  entity_slug: string;
+  type: "reply_post" | "reply_thread" | "like_thread" | "like_post";
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  actor?: NotificationActor;
+}
+
+export interface NotificationListResponse {
+  data: Notification[];
+}
+
+export interface NotificationUnreadCountResponse {
+  count: number;
+}
+
+export interface NotificationQueryParams {
+  limit?: number;
+  offset?: number;
+}

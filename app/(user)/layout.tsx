@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { logout } from "@/lib/auth";
-import { useAuthStore } from "@/stores";
+import { useAuthStore, useUnreadCount } from "@/stores";
 import { getRoleDisplayName } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,8 +25,11 @@ import {
   Moon,
   Plus,
   Settings,
+  Bell,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { NotificationDropdown } from "@/components/NotificationDropdown";
 
 const navigation = [
   { name: "Beranda", href: "/", icon: Home },
@@ -42,6 +45,7 @@ export default function UserLayout({
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { user, role, profile } = useAuthStore();
+  const unreadCount = useUnreadCount();
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,6 +90,7 @@ export default function UserLayout({
                   Buat Diskusi
                 </Button>
               </Link>
+              <NotificationDropdown />
               <Button
                 variant="ghost"
                 size="icon"
@@ -183,6 +188,27 @@ export default function UserLayout({
               </Link>
             );
           })}
+          <Link href="/notifications">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "flex-col h-auto py-2 px-3 relative",
+                pathname === "/notifications" && "text-primary"
+              )}
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Badge>
+              )}
+              <span className="text-xs mt-1">Notif</span>
+            </Button>
+          </Link>
           <Link href="/threads/new">
             <Button
               variant="ghost"
