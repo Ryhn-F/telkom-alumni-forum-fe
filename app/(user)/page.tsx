@@ -142,7 +142,7 @@ export default function HomePage() {
             ) : recentThreads.length > 0 ? (
               <div className="space-y-4">
                 {recentThreads.map((thread) => (
-                  <Link key={thread.id} href={`/threads/${thread.id}`}>
+                  <Link key={thread.id} href={`/threads/${thread.slug}`}>
                     <div className="flex items-start space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm line-clamp-1">
@@ -195,7 +195,7 @@ export default function HomePage() {
             ) : popularThreads.length > 0 ? (
               <div className="space-y-4">
                 {popularThreads.map((thread, index) => (
-                  <Link key={thread.id} href={`/threads/${thread.id}`}>
+                  <Link key={thread.id} href={`/threads/${thread.slug}`}>
                     <div className="flex items-start space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                       <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
                         {index + 1}
