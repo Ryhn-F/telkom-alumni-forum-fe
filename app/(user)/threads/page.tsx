@@ -209,10 +209,10 @@ function ThreadsContent() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            window.location.href = `/users/${thread.author}`;
+                            window.location.href = `/users/${thread.author.username}`;
                           }}
                         >
-                          oleh {thread.author}
+                          oleh {thread.author.username}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           •{" "}

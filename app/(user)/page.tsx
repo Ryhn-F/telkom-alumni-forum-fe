@@ -157,10 +157,10 @@ export default function HomePage() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              window.location.href = `/users/${thread.author}`;
+                              window.location.href = `/users/${thread.author.username}`;
                             }}
                           >
-                            oleh {thread.author}
+                            oleh {thread.author.username}
                           </span>
                         </div>
                       </div>
@@ -216,10 +216,10 @@ export default function HomePage() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            window.location.href = `/users/${thread.author}`;
+                            window.location.href = `/users/${thread.author.username}`;
                           }}
                         >
-                          {thread.author}
+                          {thread.author.username}
                         </span>
                       </div>
                       <div className="flex items-center text-xs text-muted-foreground">

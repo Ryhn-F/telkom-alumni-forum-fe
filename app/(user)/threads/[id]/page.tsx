@@ -222,7 +222,7 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
     setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
   };
 
-  const isOwner = thread?.author === user?.username;
+  const isOwner = thread?.author.username === user?.username;
   const isAdmin = role?.name === "admin";
 
   if (loading)
@@ -277,17 +277,17 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
               <h1 className="text-2xl font-bold">{thread.title}</h1>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Link
-                  href={`/users/${thread.author}`}
+                  href={`/users/${thread.author.username}`}
                   className="flex items-center gap-2 hover:text-primary transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={thread.author_avatar} />
+                    <AvatarImage src={thread.author.avatar_url} />
                     <AvatarFallback>
-                      {thread.author[0].toUpperCase()}
+                      {thread.author.username[0].toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hover:underline">{thread.author}</span>
+                  <span className="hover:underline">{thread.author.username}</span>
                 </Link>
                 <span>•</span>
                 <span>
@@ -437,7 +437,7 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
                 <div className="flex items-center gap-2 text-sm">
                   <CornerDownRight className="h-4 w-4 text-primary" />
                   <span className="text-muted-foreground">Membalas</span>
-                  <span className="font-medium">{replyToPost.author}</span>
+                  <span className="font-medium">{replyToPost.author.username}</span>
                 </div>
                 <Button
                   type="button"
@@ -461,7 +461,7 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
               onChange={setReplyContent}
               onAttachmentUpload={(id) => setReplyAttachmentIds((prev) => [...prev, id])}
               isLoading={submitting}
-              placeholder={replyToPost ? `Balas ${replyToPost.author}...` : "Tulis balasan Anda..."}
+              placeholder={replyToPost ? `Balas ${replyToPost.author.username}...` : "Tulis balasan Anda..."}
             />
             <div className="flex justify-end gap-2">
               {replyToPost && (
@@ -612,19 +612,19 @@ function PostItem({
 
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3 w-full">
-              <Link href={`/users/${post.author}`}>
+              <Link href={`/users/${post.author.username}`}>
                 <Avatar className={`${isNested ? "h-7 w-7" : "h-8 w-8"} hover:ring-2 hover:ring-primary/50 transition-all`}>
-                  <AvatarImage src={post.author_avatar} />
-                  <AvatarFallback>{post.author[0].toUpperCase()}</AvatarFallback>
+                  <AvatarImage src={post.author.avatar_url} />
+                  <AvatarFallback>{post.author.username[0].toUpperCase()}</AvatarFallback>
                 </Avatar>
               </Link>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">
                   <Link 
-                    href={`/users/${post.author}`}
+                    href={`/users/${post.author.username}`}
                     className={`font-medium ${isNested ? "text-xs" : "text-sm"} hover:text-primary hover:underline transition-colors`}
                   >
-                    {post.author}
+                    {post.author.username}
                   </Link>
                   <span className="text-xs text-muted-foreground">
                     {new Date(post.created_at).toLocaleDateString("id-ID")}
@@ -689,7 +689,7 @@ function PostItem({
                 )}
               </div>
             </div>
-            {!isEditing && (post.author === currentUser?.username || isAdmin) && (
+            {!isEditing && (post.author.username === currentUser?.username || isAdmin) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -697,7 +697,7 @@ function PostItem({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                   {post.author === currentUser?.username && (
+                   {post.author.username === currentUser?.username && (
                       <DropdownMenuItem onClick={() => setIsEditing(true)}>
                           <Pencil className="h-4 w-4 mr-2" />
                           Edit

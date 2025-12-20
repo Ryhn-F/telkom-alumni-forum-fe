@@ -78,6 +78,12 @@ export interface UploadResponse {
   file_type: string;
 }
 
+// ==================== Author ====================
+export interface Author {
+  username: string;
+  avatar_url?: string;
+}
+
 // ==================== Thread ====================
 export interface Thread {
   id: string;
@@ -87,8 +93,7 @@ export interface Thread {
   content: string;
   audience: "semua" | "guru" | "siswa";
   views: number;
-  author: string;
-  author_avatar?: string;
+  author: Author;
   likes_count?: number;
   is_liked?: boolean;
   attachments: Attachment[];
@@ -116,8 +121,7 @@ export interface Post {
   thread_id: string;
   parent_id?: string | null;
   content: string;
-  author: string;
-  author_avatar?: string;
+  author: Author;
   likes_count?: number;
   is_liked?: boolean;
   attachments: Attachment[];
