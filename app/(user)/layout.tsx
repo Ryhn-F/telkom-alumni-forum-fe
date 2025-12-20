@@ -26,10 +26,13 @@ import {
   Plus,
   Settings,
   Bell,
+  Search,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
+import { SearchTrigger } from "@/components/SearchDialog";
+
 
 const navigation = [
   { name: "Beranda", href: "/", icon: Home },
@@ -84,6 +87,9 @@ export default function UserLayout({
             </nav>
 
             <div className="flex items-center space-x-2">
+              <div className="hidden md:block">
+                <SearchTrigger />
+              </div>
               <Link href="/threads/new" className="hidden sm:block">
                 <Button size="sm" className="gap-2">
                   <Plus className="h-4 w-4" />
@@ -207,6 +213,19 @@ export default function UserLayout({
                 </Badge>
               )}
               <span className="text-xs mt-1">Notif</span>
+            </Button>
+          </Link>
+          <Link href="/search">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "flex-col h-auto py-2 px-3",
+                pathname === "/search" && "text-primary"
+              )}
+            >
+              <Search className="h-5 w-5" />
+              <span className="text-xs mt-1">Cari</span>
             </Button>
           </Link>
           <Link href="/threads/new">

@@ -14,3 +14,4 @@ export {
   useIsConnected,
 } from "./notification-store";
 
+export { useSearchStore } from "./search-store";

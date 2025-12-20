@@ -47,6 +47,7 @@ export interface LoginResponse {
   user: User;
   role: Role;
   profile: Profile;
+  search_token: string;
 }
 
 // ==================== Category ====================
@@ -261,4 +262,67 @@ export interface NotificationUnreadCountResponse {
 export interface NotificationQueryParams {
   limit?: number;
   offset?: number;
+}
+
+// ==================== Meilisearch ====================
+export interface MeilisearchUser {
+  username: string;
+  avatar_url?: string;
+}
+
+export interface MeilisearchCategory {
+  name: string;
+}
+
+export interface MeilisearchThread {
+  id: string;
+  title: string;
+  content: string;
+  slug: string;
+  audience: string;
+  allowed_roles?: string[];
+  views: number;
+  likes_count?: number;
+  created_at: number;
+  category_id: string;
+  user: MeilisearchUser;
+  category: MeilisearchCategory;
+  _formatted?: {
+    title?: string;
+    content?: string;
+  };
+}
+
+export interface MeilisearchPost {
+  id: string;
+  thread_id: string;
+  thread_slug: string;
+  thread_title: string;
+  content: string;
+  parent_id?: string;
+  allowed_roles?: string[];
+  likes_count?: number;
+  created_at: number;
+  user: MeilisearchUser;
+  _formatted?: {
+    content?: string;
+  };
+}
+
+// Separate result types for threads and posts since their response formats differ
+export interface MeilisearchThreadResult {
+  results: MeilisearchThread[];
+  query?: string;
+  limit: number;
+  offset: number;
+  total: number;
+}
+
+export interface MeilisearchPostResult {
+  hits: MeilisearchPost[];
+  query?: string;
+  processingTimeMs?: number;
+  limit: number;
+  offset: number;
+  estimatedTotalHits: number;
 }

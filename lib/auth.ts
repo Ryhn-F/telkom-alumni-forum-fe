@@ -1,5 +1,5 @@
 import { api } from "./axios";
-import { setToken, setUserData, clearAuthCookies } from "./cookies";
+import { setToken, setUserData, setSearchToken, clearAuthCookies } from "./cookies";
 import type { LoginRequest, LoginResponse, UserWithProfile } from "@/types";
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -12,6 +12,9 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   setUserData(
     JSON.stringify({ user: data.user, role: data.role, profile: data.profile })
   );
+  if (data.search_token) {
+    setSearchToken(data.search_token, data.expires_in);
+  }
   return data;
 }
 
