@@ -25,9 +25,11 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import type { Category, CategoryListResponse, MessageResponse } from "@/types";
 import { TiptapEditor } from "@/components/TiptapEditor";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function NewThreadPage() {
   const router = useRouter();
+  const { role } = useAuthStore();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -49,6 +51,11 @@ export default function NewThreadPage() {
     e.preventDefault();
     if (!title.trim() || !content.trim() || !categoryId) {
       toast.error("Mohon lengkapi semua field yang wajib");
+      return;
+    }
+    const contentText = content.replace(/<[^>]*>/g, "");
+    if (contentText.length > 10000) {
+      toast.error("Konten tidak boleh lebih dari 10.000 karakter");
       return;
     }
     setLoading(true);
@@ -103,9 +110,13 @@ export default function NewThreadPage() {
                 placeholder="Masukkan judul diskusi..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                maxLength={120}
                 disabled={loading}
                 required
               />
+              <div className="text-xs text-muted-foreground text-right">
+                {title.length}/120
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -145,8 +156,12 @@ export default function NewThreadPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="semua">Semua (Umum)</SelectItem>
-                    <SelectItem value="guru">Khusus Guru</SelectItem>
-                    <SelectItem value="siswa">Khusus Siswa</SelectItem>
+                    {(role?.name === "admin" || role?.name === "guru") && (
+                      <SelectItem value="guru">Khusus Guru</SelectItem>
+                    )}
+                    {(role?.name === "admin" || role?.name === "siswa") && (
+                      <SelectItem value="siswa">Khusus Siswa</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -162,6 +177,9 @@ export default function NewThreadPage() {
                 isLoading={loading}
                 placeholder="Tulis diskusi Anda di sini... (Anda bisa menyisipkan gambar)"
               />
+              <div className="text-xs text-muted-foreground text-right">
+                {content.replace(/<[^>]*>/g, "").length}/10000
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button

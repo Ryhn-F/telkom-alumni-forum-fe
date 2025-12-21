@@ -161,6 +161,11 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyContent.trim() || !thread) return;
+    const contentText = replyContent.replace(/<[^>]*>/g, "");
+    if (contentText.length > 5000) {
+      toast.error("Balasan tidak boleh lebih dari 5.000 karakter");
+      return;
+    }
     setSubmitting(true);
     try {
       const payload: { content: string; parent_id?: string; attachment_ids?: number[] } = {
@@ -463,7 +468,9 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
               isLoading={submitting}
               placeholder={replyToPost ? `Balas ${replyToPost.author.username}...` : "Tulis balasan Anda..."}
             />
-            <div className="flex justify-end gap-2">
+            <div className="text-xs text-muted-foreground text-right">
+                {replyContent.replace(/<[^>]*>/g, "").length}/5000
+            </div>            <div className="flex justify-end gap-2">
               {replyToPost && (
                 <Button
                   type="button"
@@ -566,6 +573,11 @@ function PostItem({
       toast.error("Konten tidak boleh kosong");
       return;
     }
+    const contentText = editContent.replace(/<[^>]*>/g, "");
+    if (contentText.length > 5000) {
+      toast.error("Balasan tidak boleh lebih dari 5.000 karakter");
+      return;
+    }
     setIsSaving(true);
     try {
       const res = await api.put<Post>(`/api/posts/${post.id}`, {
@@ -639,6 +651,9 @@ function PostItem({
                         onAttachmentUpload={(id) => setEditAttachmentIds((prev) => [...prev, id])}
                         isLoading={isSaving}
                       />
+                      <div className="text-xs text-muted-foreground text-right">
+                          {editContent.replace(/<[^>]*>/g, "").length}/5000
+                        </div>
                       <div className="flex gap-2">
                           <Button size="sm" onClick={handleSave} disabled={isSaving}>
                               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

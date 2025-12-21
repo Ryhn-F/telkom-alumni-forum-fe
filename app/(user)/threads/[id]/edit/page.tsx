@@ -25,11 +25,13 @@ import { ArrowLeft, Loader2, Save } from "lucide-react";
 import type { Category, CategoryListResponse, MessageResponse, Thread } from "@/types";
 import { TiptapEditor } from "@/components/TiptapEditor";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function EditThreadPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.id as string;
+  const { role } = useAuthStore();
   
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +92,11 @@ export default function EditThreadPage() {
     e.preventDefault();
     if (!title.trim() || !content.trim() || !categoryId) {
       toast.error("Mohon lengkapi semua field yang wajib");
+      return;
+    }
+    const contentText = content.replace(/<[^>]*>/g, "");
+    if (contentText.length > 10000) {
+      toast.error("Konten tidak boleh lebih dari 10.000 karakter");
       return;
     }
     setSaving(true);
@@ -162,9 +169,13 @@ export default function EditThreadPage() {
                 placeholder="Masukkan judul diskusi..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                maxLength={120}
                 disabled={saving}
                 required
               />
+              <div className="text-xs text-muted-foreground text-right">
+                {title.length}/120
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -204,8 +215,12 @@ export default function EditThreadPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="semua">Semua (Umum)</SelectItem>
-                    <SelectItem value="guru">Khusus Guru</SelectItem>
-                    <SelectItem value="siswa">Khusus Siswa</SelectItem>
+                    {(role?.name === "admin" || role?.name === "guru") && (
+                      <SelectItem value="guru">Khusus Guru</SelectItem>
+                    )}
+                    {(role?.name === "admin" || role?.name === "siswa") && (
+                      <SelectItem value="siswa">Khusus Siswa</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -221,6 +236,9 @@ export default function EditThreadPage() {
                 isLoading={saving}
                 placeholder="Tulis diskusi Anda di sini... (Anda bisa menyisipkan gambar)"
               />
+              <div className="text-xs text-muted-foreground text-right">
+                {content.replace(/<[^>]*>/g, "").length}/10000
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button
