@@ -258,18 +258,22 @@ export default function UserLayout({
               <span className="text-xs mt-1">Cari</span>
             </Button>
           </Link>
-          <Link href="/threads/new">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-col h-auto py-2 px-3"
-            >
-              <Plus className="h-5 w-5" />
-              <span className="text-xs mt-1">Buat</span>
-            </Button>
-          </Link>
         </div>
       </nav>
+
+      {/* Floating Action Button for Create - Mobile Only */}
+      <Link 
+        href="/threads/new" 
+        className="md:hidden fixed bottom-20 right-4 z-50"
+      >
+        <Button
+          size="lg"
+          className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+        >
+          <Plus className="h-6 w-6" />
+          <span className="sr-only">Buat Diskusi Baru</span>
+        </Button>
+      </Link>
 
       <main className="container mx-auto px-4 py-6 pb-20 md:pb-6">
         {children}
