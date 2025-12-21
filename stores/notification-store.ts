@@ -111,6 +111,16 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   },
 
   addNotification: (notification: Notification, showToast = true) => {
+    // Check if notification already exists to prevent duplicates
+    const existingNotification = get().notifications.find(
+      (n) => n.id === notification.id
+    );
+    
+    if (existingNotification) {
+      // Notification already exists, skip adding
+      return;
+    }
+
     set((state) => ({
       notifications: [notification, ...state.notifications],
       unreadCount: state.unreadCount + 1,
@@ -146,44 +156,53 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
       existingSocket.close();
     }
 
-    const wsUrl = `${getWebSocketUrl()}?token=${token}`;
-    const socket = new WebSocket(wsUrl);
-
-    socket.onopen = () => {
-      console.log("WebSocket connected");
-      set({ isConnected: true, error: null });
-    };
-
-    socket.onmessage = (event) => {
+    // Small delay to ensure the page is fully loaded
+    setTimeout(() => {
       try {
-        const notification: Notification = JSON.parse(event.data);
-        get().addNotification(notification, true);
-      } catch (error) {
-        console.error("Failed to parse WebSocket message:", error);
-      }
-    };
+        const wsUrl = `${getWebSocketUrl()}?token=${token}`;
+        const socket = new WebSocket(wsUrl);
 
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      set({ error: "WebSocket connection error" });
-    };
+        socket.onopen = () => {
+          console.log("WebSocket connected");
+          set({ isConnected: true, error: null });
+        };
 
-    socket.onclose = (event) => {
-      console.log("WebSocket disconnected:", event.code, event.reason);
-      set({ isConnected: false, socket: null });
-
-      // Auto-reconnect after 5 seconds if not intentionally closed
-      if (event.code !== 1000) {
-        setTimeout(() => {
-          const currentSocket = get().socket;
-          if (!currentSocket) {
-            get().connectWebSocket();
+        socket.onmessage = (event) => {
+          try {
+            const notification: Notification = JSON.parse(event.data);
+            get().addNotification(notification, true);
+          } catch (error) {
+            console.error("Failed to parse WebSocket message:", error);
           }
-        }, 5000);
-      }
-    };
+        };
 
-    set({ socket });
+        socket.onerror = (error) => {
+          console.error("WebSocket error:", error);
+          set({ error: "WebSocket connection error" });
+        };
+
+        socket.onclose = (event) => {
+          console.log("WebSocket disconnected:", event.code, event.reason);
+          set({ isConnected: false, socket: null });
+
+          // Auto-reconnect after 5 seconds only for unexpected closures
+          // 1000 = Normal closure, 1001 = Going away (page navigation/refresh)
+          if (event.code !== 1000 && event.code !== 1001) {
+            setTimeout(() => {
+              const currentSocket = get().socket;
+              if (!currentSocket && getToken()) {
+                get().connectWebSocket();
+              }
+            }, 5000);
+          }
+        };
+
+        set({ socket });
+      } catch (error) {
+        console.error("Failed to create WebSocket connection:", error);
+        set({ error: "Failed to create WebSocket connection" });
+      }
+    }, 500);
   },
 
   disconnectWebSocket: () => {

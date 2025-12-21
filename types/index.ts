@@ -116,10 +116,17 @@ export interface CreateThreadRequest {
 export type UpdateThreadRequest = CreateThreadRequest;
 
 // ==================== Post (Reply) ====================
+export interface PostParent {
+  id: string;
+  content: string;
+  author: Author;
+}
+
 export interface Post {
   id: string;
   thread_id: string;
   parent_id?: string | null;
+  parent?: PostParent;  // Populated when API returns parent post data
   content: string;
   author: Author;
   likes_count?: number;
@@ -333,4 +340,18 @@ export interface MeilisearchPostResult {
   limit: number;
   offset: number;
   estimatedTotalHits: number;
+}
+
+// ==================== Menfess ====================
+export interface Menfess {
+  id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface MenfessListResponse {
+  data: Menfess[];
+  total: number;
+  page: number;
+  limit: number;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
@@ -33,6 +33,18 @@ export function NotificationDropdown() {
     connectWebSocket,
     disconnectWebSocket,
   } = useNotificationStore();
+
+  // Deduplicate notifications to prevent duplicate key errors
+  const uniqueNotifications = useMemo(() => {
+    const seen = new Set<string>();
+    return notifications.filter((notification) => {
+      if (seen.has(notification.id)) {
+        return false;
+      }
+      seen.add(notification.id);
+      return true;
+    });
+  }, [notifications]);
 
   // Initialize WebSocket connection and fetch initial data
   useEffect(() => {
@@ -139,7 +151,7 @@ export function NotificationDropdown() {
           </div>
         ) : (
           <>
-            {notifications.slice(0, 10).map((notification) => (
+            {uniqueNotifications.slice(0, 10).map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
                 asChild
@@ -186,7 +198,7 @@ export function NotificationDropdown() {
               </DropdownMenuItem>
             ))}
 
-            {notifications.length > 10 && (
+            {uniqueNotifications.length > 10 && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild className="justify-center">

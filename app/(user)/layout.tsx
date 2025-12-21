@@ -27,6 +27,7 @@ import {
   Settings,
   Bell,
   Search,
+  EyeOff,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -84,6 +85,19 @@ export default function UserLayout({
                   </Link>
                 );
               })}
+              {/* Menfess - Only for siswa and admin */}
+              {role?.name !== "guru" && (
+                <Link href="/menfess">
+                  <Button
+                    variant={pathname === "/menfess" ? "secondary" : "ghost"}
+                    size="sm"
+                    className={cn("gap-2", pathname === "/menfess" && "bg-secondary")}
+                  >
+                    <EyeOff className="h-4 w-4" />
+                    Menfess
+                  </Button>
+                </Link>
+              )}
             </nav>
 
             <div className="flex items-center space-x-2">
@@ -194,6 +208,22 @@ export default function UserLayout({
               </Link>
             );
           })}
+          {/* Menfess - Only for siswa and admin */}
+          {role?.name !== "guru" && (
+            <Link href="/menfess">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "flex-col h-auto py-2 px-3",
+                  pathname === "/menfess" && "text-primary"
+                )}
+              >
+                <EyeOff className="h-5 w-5" />
+                <span className="text-xs mt-1">Menfess</span>
+              </Button>
+            </Link>
+          )}
           <Link href="/notifications">
             <Button
               variant="ghost"

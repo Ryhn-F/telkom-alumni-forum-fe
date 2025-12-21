@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
@@ -34,6 +34,18 @@ export default function NotificationsPage() {
   useEffect(() => {
     fetchNotifications(50, 0);
   }, [fetchNotifications]);
+
+  // Deduplicate notifications to prevent duplicate key errors
+  const uniqueNotifications = useMemo(() => {
+    const seen = new Set<string>();
+    return notifications.filter((notification) => {
+      if (seen.has(notification.id)) {
+        return false;
+      }
+      seen.add(notification.id);
+      return true;
+    });
+  }, [notifications]);
 
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.is_read) {
@@ -133,7 +145,7 @@ export default function NotificationsPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {notifications.map((notification) => (
+              {uniqueNotifications.map((notification) => (
                 <Link
                   key={notification.id}
                   href={getNotificationLink(notification)}

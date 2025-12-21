@@ -1069,6 +1069,134 @@ Klien harus melakukan koneksi ke endpoint ini. Karena WebSocket browser API tida
 }
 ```
 
+
+### 31. ✅ GET /api/users/count
+
+Mendapatkan total jumlah user yang terdaftar di sistem.
+
+**Response (200):**
+
+```json
+{
+  "total_users": 150
+}
+```
+
+### 32. ✅ GET /api/threads/trending
+
+Mendapatkan daftar thread yang sedang trending (populer hari ini). Menggunakan algoritma *Gravity Decay* yang memperhitungkan Views, Likes, dan waktu pembuatan.
+
+**Query Parameter:**
+
+- `limit` (optional): int, jumlah thread yang ingin diambil. Default: `10`.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid...",
+      "category_name": "Teknologi",
+      "title": "Tutorial Golang yang Viral",
+      "slug": "tutorial-golang-viral",
+      "content": "Isi content...",
+      "audience": "semua",
+      "views": 500,
+      "likes_count": 50,
+      "author": {
+        "username": "johndoe",
+        "avatar_url": "https://..."
+      },
+      "created_at": "2024-01-01 10:00:00"
+    }
+  ]
+}
+```
+
+### 33. ✅ POST /api/menfess (Authenticated User)
+
+Membuat pesan menfess anonim dengan arsitektur "Blind Gatekeeper". 
+- Identitas pengirim **TIDAK DISIMPAN** dan **TIDAK DILOG**.
+- Quota: Maksimal 2 menfess per user per hari (reset jam 00:00).
+- Waktu pembuatan disimpan dengan timestamp fuzzy (dibulatkan ke 5 menit terdekat).
+- **Hanya Siswa dan Admin** yang bisa menggunakan fitur ini. Role **Guru** tidak diizinkan.
+
+**Headers:**
+
+```
+Authorization: Bearer <user_token>
+Content-Type: application/json
+```
+
+**Body (JSON):**
+
+- `content` (required): string. Isi pesan menfess.
+
+**Response (201):**
+
+```json
+{
+  "message": "menfess created successfully"
+}
+```
+
+**Response (429):** Quota habis.
+
+```json
+{
+  "error": "menfess quota exceeded (max 2 per day)"
+}
+```
+
+**Response (403):** Role Guru dilarang post.
+
+```json
+{
+  "error": "guru cannot post menfess"
+}
+```
+
+### 34. ✅ GET /api/menfess (Authenticated User)
+
+Mendapatkan daftar semua menfess secara publik (tanpa data pengirim).
+
+**Headers:**
+
+```
+Authorization: Bearer <user_token>
+```
+
+**Query Parameter:**
+
+- `page` (optional): int, default 1.
+- `limit` (optional): int, default 10.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid...",
+      "content": "Ini pesan rahasia...",
+      "created_at": "2024-01-01 12:05:00"
+    }
+  ],
+  "total": 50,
+  "page": 1,
+  "limit": 10
+}
+```
+
+**Response (403):** Role Guru dilarang lihat.
+
+```json
+{
+  "error": "guru cannot view menfess"
+}
+```
+
 ## Catatan Keamanan
 
 1. **Admin Only**: Endpoint `/api/admin/*` memerlukan token JWT dari user dengan role `admin`

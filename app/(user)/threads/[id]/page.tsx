@@ -34,7 +34,7 @@ import {
   ChevronRight,
   CornerDownRight,
 } from "lucide-react";
-import type { Thread, Post, PostListResponse, MessageResponse } from "@/types";
+import type { Thread, Post, PostParent, PostListResponse, MessageResponse } from "@/types";
 import { TiptapEditor } from "@/components/TiptapEditor";
 import { RichTextDisplay } from "@/components/RichTextDisplay";
 
@@ -62,7 +62,10 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
   // Nested reply state
   const [replyToPost, setReplyToPost] = useState<Post | null>(null);
 
-  // Function to fetch posts with pagination
+  // State for post parent map (for showing "replying to" indicator)
+  const [postMap, setPostMap] = useState<Map<string, PostParent>>(new Map());
+
+  // Function to fetch posts with pagination - keeps tree structure
   const fetchPosts = async (threadId: string, page: number = 1) => {
     setPostsLoading(true);
     try {
@@ -70,7 +73,29 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
         `/api/threads/${threadId}/posts`,
         { params: { page, limit: POSTS_PER_PAGE } }
       );
-      setPosts(postsRes.data.data || []);
+      
+      // Build a map of all posts for parent reference
+      const postsData = postsRes.data.data || [];
+      const newPostMap = new Map<string, PostParent>();
+      
+      // Recursive function to collect all posts including nested ones
+      const collectPosts = (postList: Post[]) => {
+        for (const post of postList) {
+          newPostMap.set(post.id, {
+            id: post.id,
+            content: post.content,
+            author: post.author,
+          });
+          if (post.replies && post.replies.length > 0) {
+            collectPosts(post.replies);
+          }
+        }
+      };
+      collectPosts(postsData);
+      setPostMap(newPostMap);
+      
+      // Keep tree structure - don't flatten
+      setPosts(postsData);
       setTotalPages(postsRes.data.meta?.total_pages || 1);
       setTotalItems(postsRes.data.meta?.total_items || 0);
     } catch (error) {
@@ -385,9 +410,11 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
         ) : posts.length > 0 ? (
           <>
             {posts.map((post) => (
-              <PostItem
+              <RenderPostTree
                 key={post.id}
                 post={post}
+                depth={0}
+                postMap={postMap}
                 currentUser={user}
                 isAdmin={isAdmin}
                 onDelete={handleDeletePost}
@@ -501,22 +528,81 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
   );
 }
 
-function PostItem({
+// Helper component to recursively render post tree with DFS
+function RenderPostTree({
   post,
+  depth,
+  postMap,
   currentUser,
   isAdmin,
   onDelete,
   onUpdate,
   onReply,
-  depth = 0,
 }: {
   post: Post;
+  depth: number;
+  postMap: Map<string, PostParent>;
   currentUser: any;
   isAdmin: boolean;
   onDelete: (id: string) => void;
   onUpdate: (post: Post) => void;
   onReply: (post: Post) => void;
-  depth?: number;
+}) {
+  // Get parent post data for "replying to" indicator (only for depth >= 2)
+  const parentPost = post.parent_id ? postMap.get(post.parent_id) : undefined;
+
+  return (
+    <>
+      <PostItem
+        post={post}
+        depth={depth}
+        parentPost={parentPost}
+        currentUser={currentUser}
+        isAdmin={isAdmin}
+        onDelete={onDelete}
+        onUpdate={onUpdate}
+        onReply={onReply}
+      />
+      {/* Recursively render replies */}
+      {post.replies && post.replies.length > 0 && (
+        <>
+          {post.replies.map((reply) => (
+            <RenderPostTree
+              key={reply.id}
+              post={reply}
+              depth={depth + 1}
+              postMap={postMap}
+              currentUser={currentUser}
+              isAdmin={isAdmin}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+              onReply={onReply}
+            />
+          ))}
+        </>
+      )}
+    </>
+  );
+}
+
+function PostItem({
+  post,
+  depth,
+  parentPost,
+  currentUser,
+  isAdmin,
+  onDelete,
+  onUpdate,
+  onReply,
+}: {
+  post: Post;
+  depth: number;
+  parentPost?: PostParent;
+  currentUser: any;
+  isAdmin: boolean;
+  onDelete: (id: string) => void;
+  onUpdate: (post: Post) => void;
+  onReply: (post: Post) => void;
 }) {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes_count || 0);
@@ -527,9 +613,12 @@ function PostItem({
     (post.attachments || []).map((a) => a.id)
   );
 
-  // Limit max nesting depth for UI purposes
-  const MAX_DEPTH = 4;
-  const isNested = depth > 0;
+  // Layout logic based on depth
+  // depth = 0: root post, no indentation
+  // depth = 1: direct reply to root, indented with left border
+  // depth >= 2: nested reply, same indentation as level 1, but with "replying to" indicator
+  const isIndented = depth >= 1;
+  const showReplyingToIndicator = depth >= 2 && parentPost;
 
   useEffect(() => {
     // Sync state if prop updates
@@ -595,160 +684,139 @@ function PostItem({
     }
   };
 
-  // Calculate visual styles based on depth
-  const getDepthStyles = () => {
-    if (depth === 0) return "";
-    // Progressive indentation with decreasing amounts
-    const baseMargin = Math.min(depth, MAX_DEPTH) * 16;
-    return `ml-${Math.min(baseMargin / 4, 12)}`;
+  // Helper to get preview text from HTML content
+  const getContentPreview = (content: string, maxLength: number = 50) => {
+    const text = content.replace(/<[^>]*>/g, "").trim();
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + "...";
   };
 
   return (
-    <div className="space-y-3">
-      {/* Main post card */}
-      <Card 
-        className={`
-          ${isNested ? "border-l-4 border-l-primary/30" : ""}
-          ${depth > 0 ? "bg-muted/10" : ""}
-        `}
-        style={{ marginLeft: depth > 0 ? Math.min(depth * 24, 96) : 0 }}
-      >
-        <CardContent className="pt-4">
-          {/* Show nested indicator for replies */}
-          {isNested && (
-            <div className="mb-2 flex items-center gap-1 text-xs text-muted-foreground">
-              <CornerDownRight className="h-3 w-3" />
-              <span>Balasan</span>
-            </div>
-          )}
-
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3 w-full">
-              <Link href={`/users/${post.author.username}`}>
-                <Avatar className={`${isNested ? "h-7 w-7" : "h-8 w-8"} hover:ring-2 hover:ring-primary/50 transition-all`}>
-                  <AvatarImage src={post.author.avatar_url} />
-                  <AvatarFallback>{post.author.username[0].toUpperCase()}</AvatarFallback>
-                </Avatar>
-              </Link>
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Link 
-                    href={`/users/${post.author.username}`}
-                    className={`font-medium ${isNested ? "text-xs" : "text-sm"} hover:text-primary hover:underline transition-colors`}
-                  >
-                    {post.author.username}
-                  </Link>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(post.created_at).toLocaleDateString("id-ID")}
-                  </span>
-                </div>
-                
-                {isEditing ? (
-                   <div className="space-y-4">
-                      <TiptapEditor
-                        value={editContent}
-                        onChange={setEditContent}
-                        onAttachmentUpload={(id) => setEditAttachmentIds((prev) => [...prev, id])}
-                        isLoading={isSaving}
-                      />
-                      <div className="text-xs text-muted-foreground text-right">
-                          {editContent.replace(/<[^>]*>/g, "").length}/5000
-                        </div>
-                      <div className="flex gap-2">
-                          <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                              Simpan
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} disabled={isSaving}>
-                              Batal
-                          </Button>
-                      </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className={`${isNested ? "text-xs" : "text-sm"} mt-1`}>
-                      <RichTextDisplay content={post.content} />
-                    </div>
-                    {/* Post Actions (Like, Reply) */}
-                    <div className="flex items-center gap-2 mt-3">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`h-7 px-2 gap-1.5 ${
-                          liked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
-                        }`}
-                        onClick={handleLike}
-                      >
-                        <Heart
-                          className={`h-3 w-3 ${liked ? "fill-current" : ""}`}
-                        />
-                        <span className="text-xs">{likesCount}</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary"
-                        onClick={() => onReply(post)}
-                      >
-                        <Reply className="h-3 w-3" />
-                        <span className="text-xs">Balas</span>
-                      </Button>
-                      {post.replies && post.replies.length > 0 && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" />
-                          {post.replies.length} balasan
-                        </span>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-            {!isEditing && (post.author.username === currentUser?.username || isAdmin) && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <MoreVertical className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                   {post.author.username === currentUser?.username && (
-                      <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Edit
-                      </DropdownMenuItem>
-                   )}
-                  <DropdownMenuItem
-                    onClick={() => onDelete(post.id)}
-                    className="text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Hapus
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+    <Card 
+      className={`
+        ${isIndented ? "ml-6 sm:ml-8 border-l-2 border-primary/30" : ""}
+      `}
+    >
+      <CardContent className="pt-4">
+        {/* Reply indicator - only show for depth >= 2 */}
+        {showReplyingToIndicator && (
+          <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <CornerDownRight className="h-3 w-3 shrink-0 text-primary/60" />
+            <span>membalas</span>
+            <Link 
+              href={`/users/${parentPost.author.username}`}
+              className="font-medium text-foreground hover:text-primary hover:underline"
+            >
+              @{parentPost.author.username}
+            </Link>
+            <span className="hidden sm:inline text-muted-foreground/70 italic truncate max-w-[200px]">
+              &ldquo;{getContentPreview(parentPost.content)}&rdquo;
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        )}
 
-      {/* Recursively render nested replies */}
-      {post.replies && post.replies.length > 0 && (
-        <div className="space-y-3">
-          {post.replies.map((reply) => (
-            <PostItem
-              key={reply.id}
-              post={reply}
-              currentUser={currentUser}
-              isAdmin={isAdmin}
-              onDelete={onDelete}
-              onUpdate={onUpdate}
-              onReply={onReply}
-              depth={depth + 1}
-            />
-          ))}
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3 w-full">
+            <Link href={`/users/${post.author.username}`}>
+              <Avatar className="h-8 w-8 hover:ring-2 hover:ring-primary/50 transition-all">
+                <AvatarImage src={post.author.avatar_url} />
+                <AvatarFallback>{post.author.username[0].toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </Link>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-2">
+                <Link 
+                  href={`/users/${post.author.username}`}
+                  className="font-medium text-sm hover:text-primary hover:underline transition-colors"
+                >
+                  {post.author.username}
+                </Link>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(post.created_at).toLocaleDateString("id-ID")}
+                </span>
+              </div>
+              
+              {isEditing ? (
+                 <div className="space-y-4">
+                    <TiptapEditor
+                      value={editContent}
+                      onChange={setEditContent}
+                      onAttachmentUpload={(id) => setEditAttachmentIds((prev) => [...prev, id])}
+                      isLoading={isSaving}
+                    />
+                    <div className="text-xs text-muted-foreground text-right">
+                        {editContent.replace(/<[^>]*>/g, "").length}/5000
+                      </div>
+                    <div className="flex gap-2">
+                        <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Simpan
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} disabled={isSaving}>
+                            Batal
+                        </Button>
+                    </div>
+                </div>
+              ) : (
+                <>
+                  <div className="text-sm mt-1">
+                    <RichTextDisplay content={post.content} />
+                  </div>
+                  {/* Post Actions (Like, Reply) */}
+                  <div className="flex items-center gap-2 mt-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-7 px-2 gap-1.5 ${
+                        liked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
+                      }`}
+                      onClick={handleLike}
+                    >
+                      <Heart
+                        className={`h-3 w-3 ${liked ? "fill-current" : ""}`}
+                      />
+                      <span className="text-xs">{likesCount}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary"
+                      onClick={() => onReply(post)}
+                    >
+                      <Reply className="h-3 w-3" />
+                      <span className="text-xs">Balas</span>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          {!isEditing && (post.author.username === currentUser?.username || isAdmin) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <MoreVertical className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                 {post.author.username === currentUser?.username && (
+                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                    </DropdownMenuItem>
+                 )}
+                <DropdownMenuItem
+                  onClick={() => onDelete(post.id)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
