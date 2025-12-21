@@ -263,6 +263,10 @@ export interface NotificationUnreadCountResponse {
   count: number;
 }
 
+export interface UserCountResponse {
+  total_users: number;
+}
+
 export interface NotificationQueryParams {
   limit?: number;
   offset?: number;

@@ -28,22 +28,25 @@ import type { Thread, ThreadListResponse } from "@/types";
 export default function HomePage() {
   const { profile, role } = useAuthStore();
   const [recentThreads, setRecentThreads] = useState<Thread[]>([]);
-  const [popularThreads, setPopularThreads] = useState<Thread[]>([]);
+  const [trendingThreads, setTrendingThreads] = useState<Thread[]>([]);
+  const [userCount, setUserCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [recentRes, popularRes] = await Promise.all([
+        const [recentRes, trendingRes, userCountRes] = await Promise.all([
           api.get<ThreadListResponse>("/api/threads", { params: { page: 1, limit: 5 } }),
-          api.get<ThreadListResponse>("/api/threads", {
-            params: { page: 1, limit: 5, sort_by: "popular" },
+          api.get<{ data: Thread[] }>("/api/threads/trending", {
+            params: { limit: 5 },
           }),
+          api.get<{ total_users: number }>("/api/users/count"),
         ]);
         setRecentThreads(recentRes.data.data || []);
-        setPopularThreads(popularRes.data.data || []);
+        setTrendingThreads(trendingRes.data.data || []);
+        setUserCount(userCountRes.data.total_users || 0);
       } catch (error) {
-        console.error("Failed to fetch threads:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
@@ -71,28 +74,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Diskusi</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? <Skeleton className="h-8 w-16" /> : "100+"}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Diskusi aktif di forum
-            </p>
-          </CardContent>
-        </Card>
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Anggota Aktif</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">50+</div>
+            <div className="text-2xl font-bold">
+              {loading ? <Skeleton className="h-8 w-16" /> : userCount}
+            </div>
             <p className="text-xs text-muted-foreground">
               Guru dan siswa terdaftar
             </p>
@@ -108,11 +99,11 @@ export default function HomePage() {
               {loading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                popularThreads[0]?.views || 0
+                trendingThreads[0]?.views || 0
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Views pada diskusi terpopuler
+              Views pada diskusi viral
             </p>
           </CardContent>
         </Card>
@@ -182,15 +173,9 @@ export default function HomePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Diskusi Populer</CardTitle>
-              <CardDescription>Diskusi dengan views terbanyak</CardDescription>
+              <CardTitle>Sedang Trending</CardTitle>
+              <CardDescription>Diskusi terhangat saat ini</CardDescription>
             </div>
-            <Link href="/threads?sort_by=popular">
-              <Button variant="ghost" size="sm" className="gap-1">
-                Lihat Semua
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -199,9 +184,9 @@ export default function HomePage() {
                   <Skeleton key={i} className="h-12 w-full" />
                 ))}
               </div>
-            ) : popularThreads.length > 0 ? (
+            ) : trendingThreads.length > 0 ? (
               <div className="space-y-4">
-                {popularThreads.map((thread, index) => (
+                {trendingThreads.map((thread, index) => (
                   <Link key={thread.id} href={`/threads/${thread.slug}`}>
                     <div className="flex items-start space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                       <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
@@ -232,7 +217,7 @@ export default function HomePage() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-8">
-                Belum ada diskusi populer.
+                Belum ada diskusi trending.
               </p>
             )}
           </CardContent>
