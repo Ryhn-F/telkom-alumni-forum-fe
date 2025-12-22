@@ -25,7 +25,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -170,6 +169,11 @@ export default function UsersPage() {
     setDeletingUser(user);
     setIsDeleteOpen(true);
   };
+  const openCreateDialog = () => {
+    setFormData(initialFormData);
+    setIsCreateOpen(true);
+  };
+
   const filteredUsers = users.filter(
     (u) =>
       u.user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,13 +200,11 @@ export default function UsersPage() {
             Tambah, edit, atau hapus pengguna sistem
           </p>
         </div>
+        <Button className="gap-2" onClick={openCreateDialog}>
+          <Plus className="h-4 w-4" />
+          Tambah Pengguna
+        </Button>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Tambah Pengguna
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Tambah Pengguna Baru</DialogTitle>
