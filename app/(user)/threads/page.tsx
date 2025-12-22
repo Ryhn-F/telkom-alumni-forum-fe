@@ -167,7 +167,9 @@ function ThreadsContent() {
           </div>
         </CardContent>
       </Card>
-      <div className="space-y-4">
+      
+      {/* Thread list with staggered animation */}
+      <div className="space-y-4 animate-stagger">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <Card key={i}>
@@ -182,14 +184,14 @@ function ThreadsContent() {
         ) : threads.length > 0 ? (
           threads.map((thread) => (
             <Link key={thread.id} href={`/threads/${thread.slug}`}>
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+              <Card className="hover-lift cursor-pointer border-border/50 hover:border-border">
                 <CardContent className="pt-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg line-clamp-1 mb-1">
+                      <h3 className="font-semibold text-lg line-clamp-1 mb-2 group-hover:text-primary transition-colors">
                         {thread.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      <p className="text-sm text-muted-foreground/80 line-clamp-2 mb-3 leading-relaxed">
                         {thread.content.replace(/<[^>]*>/g, "").slice(0, 150)}
                         ...
                       </p>

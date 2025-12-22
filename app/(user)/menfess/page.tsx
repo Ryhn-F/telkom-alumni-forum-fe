@@ -407,7 +407,7 @@ export default function MenfessPage() {
           <>
             <div className="space-y-4">
               {menfessList.map((menfess) => (
-                <Card key={menfess.id} className="hover:shadow-md transition-shadow">
+                <Card key={menfess.id} className="hover-lift border-border/50 hover:border-border">
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-muted rounded-full">
@@ -429,7 +429,7 @@ export default function MenfessPage() {
                             )}
                           </span>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90">
                           {menfess.content}
                         </p>
                       </div>

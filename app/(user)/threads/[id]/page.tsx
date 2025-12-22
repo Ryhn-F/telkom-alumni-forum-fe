@@ -281,22 +281,26 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
 
   return (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => router.back()}
-        className="gap-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Kembali
-      </Button>
-      <Card>
-        <CardHeader>
+      {/* Clean, minimal article-style card for thread detail */}
+      <Card className="overflow-hidden md:border md:shadow-sm border-0 shadow-none rounded-none md:rounded-xl">
+        <CardHeader className="pb-4">
+          {/* Back button integrated with header */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="gap-2 -ml-2 mb-4 text-muted-foreground hover:text-foreground w-fit"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Kembali
+          </Button>
+          
           <div className="flex items-start justify-between">
-            <div className="space-y-2">
+            <div className="space-y-3">
+              {/* Category & Audience badges */}
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">{thread.category_name}</Badge>
-                <Badge variant="outline">
+                <Badge variant="secondary" className="font-medium">{thread.category_name}</Badge>
+                <Badge variant="outline" className="text-xs">
                   {thread.audience === "semua"
                     ? "Umum"
                     : thread.audience === "guru"
@@ -304,8 +308,14 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
                     : "Siswa"}
                 </Badge>
               </div>
-              <h1 className="text-2xl font-bold">{thread.title}</h1>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              
+              {/* Title with more prominence and spacing */}
+              <h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight">
+                {thread.title}
+              </h1>
+              
+              {/* Author info with subtle styling */}
+              <div className="flex items-center gap-3 text-sm text-muted-foreground pt-1">
                 <Link
                   href={`/users/${thread.author.username}`}
                   className="flex items-center gap-2 hover:text-primary transition-colors"
@@ -357,25 +367,33 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
             )}
           </div>
         </CardHeader>
-        <CardContent>
-          <RichTextDisplay content={thread.content} />
-          <div className="flex items-center gap-4 mt-6 pt-4 border-t">
+        <CardContent className="pt-6">
+          {/* Article content with improved typography */}
+          <div className="mb-8">
+            <RichTextDisplay content={thread.content} />
+          </div>
+          
+          {/* Visual break before actions */}
+          <div className="divider-gradient my-6" />
+          
+          {/* Actions with better styling */}
+          <div className="flex items-center gap-4">
             <Button
               variant={liked ? "default" : "outline"}
               size="sm"
               onClick={handleLike}
-              className="gap-2"
+              className="gap-2 hover:scale-105 transition-transform"
             >
               <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
               {likesCount}
             </Button>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Eye className="h-4 w-4" />
-              {thread.views} views
+              <span>{thread.views} views</span>
             </div>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <MessageSquare className="h-4 w-4" />
-              {posts.length} balasan
+              <span>{posts.length} balasan</span>
             </div>
           </div>
         </CardContent>

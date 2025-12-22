@@ -56,17 +56,22 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-6 md:p-8">
+      {/* Hero Section with better visual appeal */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-6 md:p-8 border border-primary/10">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
         <div className="relative z-10">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight">
             Selamat datang, {profile?.full_name?.split(" ")[0] || "Alumni"}! 👋
           </h1>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground mb-4 leading-relaxed">
             {role && `Anda masuk sebagai ${getRoleDisplayName(role.name)}. `}Apa
             yang ingin Anda diskusikan hari ini?
           </p>
+          <p className="text-sm text-muted-foreground/70 mb-5">
+            report bug wa: +62 878-6107-6088
+          </p>
           <Link href="/threads/new">
-            <Button className="gap-2">
+            <Button className="gap-2 hover:scale-105 transition-transform shadow-md">
               <Plus className="h-4 w-4" />
               Mulai Diskusi Baru
             </Button>
@@ -74,11 +79,12 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Stats Cards with hover effects */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
+        <Card className="hover-lift">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Anggota Aktif</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-primary/70" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -89,10 +95,10 @@ export default function HomePage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover-lift">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Trending</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-primary/70" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -134,9 +140,9 @@ export default function HomePage() {
               <div className="space-y-4">
                 {recentThreads.map((thread) => (
                   <Link key={thread.id} href={`/threads/${thread.slug}`}>
-                    <div className="flex items-start space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                    <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-all hover:translate-x-1 cursor-pointer">
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm line-clamp-1">
+                        <h4 className="font-medium text-sm line-clamp-1 mb-1">
                           {thread.title}
                         </h4>
                         <div className="flex items-center gap-2 mt-1">
@@ -188,12 +194,12 @@ export default function HomePage() {
               <div className="space-y-4">
                 {trendingThreads.map((thread, index) => (
                   <Link key={thread.id} href={`/threads/${thread.slug}`}>
-                    <div className="flex items-start space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                    <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-all hover:translate-x-1 cursor-pointer">
                       <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm line-clamp-1">
+                        <h4 className="font-medium text-sm line-clamp-1 mb-1">
                           {thread.title}
                         </h4>
                         <span

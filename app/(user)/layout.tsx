@@ -262,21 +262,26 @@ export default function UserLayout({
       </nav>
 
       {/* Floating Action Button for Create - Mobile Only */}
-      <Link 
-        href="/threads/new" 
-        className="md:hidden fixed bottom-20 right-4 z-50"
-      >
-        <Button
-          size="lg"
-          className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+      {/* Hidden on thread detail pages to not block reading */}
+      {!pathname.startsWith("/threads/") || pathname === "/threads" || pathname === "/threads/new" ? (
+        <Link 
+          href="/threads/new" 
+          className="md:hidden fixed bottom-20 right-4 z-50 animate-fade-in"
         >
-          <Plus className="h-6 w-6" />
-          <span className="sr-only">Buat Diskusi Baru</span>
-        </Button>
-      </Link>
+          <Button
+            size="lg"
+            className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+          >
+            <Plus className="h-6 w-6" />
+            <span className="sr-only">Buat Diskusi Baru</span>
+          </Button>
+        </Link>
+      ) : null}
 
-      <main className="container mx-auto px-4 py-6 pb-20 md:pb-6">
-        {children}
+      <main className="container mx-auto px-4 py-6 pb-24 md:pb-8 max-w-5xl">
+        <div className="animate-fade-in">
+          {children}
+        </div>
       </main>
     </div>
   );
