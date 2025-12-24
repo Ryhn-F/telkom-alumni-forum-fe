@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -115,7 +115,27 @@ function RankProgressBar({
   );
 }
 
-export default function LeaderboardPage() {
+// Loading skeleton for leaderboard
+function LeaderboardSkeleton() {
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div className="text-center space-y-2">
+        <Skeleton className="h-10 w-64 mx-auto" />
+        <Skeleton className="h-5 w-48 mx-auto" />
+      </div>
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-12 w-full" />
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Main leaderboard content component
+function LeaderboardContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   
@@ -554,5 +574,14 @@ export default function LeaderboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Wrap in Suspense for useSearchParams
+export default function LeaderboardPage() {
+  return (
+    <Suspense fallback={<LeaderboardSkeleton />}>
+      <LeaderboardContent />
+    </Suspense>
   );
 }
