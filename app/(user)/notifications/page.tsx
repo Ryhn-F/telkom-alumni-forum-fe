@@ -12,6 +12,7 @@ import {
   Heart,
   Loader2,
   ArrowLeft,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,12 +62,18 @@ export default function NotificationsPage() {
       case "reply_thread":
       case "reply_post":
         return <MessageSquare className="h-5 w-5 text-blue-500" />;
+      case "rank_up":
+        return <Trophy className="h-5 w-5 text-yellow-500" />;
       default:
         return <Bell className="h-5 w-5" />;
     }
   };
 
   const getNotificationLink = (notification: Notification) => {
+    // Handle gamification notifications
+    if (notification.entity_type === "gamification" || notification.type === "rank_up") {
+      return `/profile`;
+    }
     // Navigate to thread using slug
     if (notification.entity_slug) {
       return `/threads/${notification.entity_slug}`;
@@ -166,7 +173,7 @@ export default function NotificationsPage() {
                     <div className="flex items-center gap-2 mb-1">
                       {getNotificationIcon(notification.type)}
                       <span className="font-medium">
-                        {notification.actor?.username || "Seseorang"}
+                        {notification.type === "rank_up" ? "Sistem" : (notification.actor?.username || "Seseorang")}
                       </span>
                       {!notification.is_read && (
                         <div className="w-2 h-2 bg-primary rounded-full" />

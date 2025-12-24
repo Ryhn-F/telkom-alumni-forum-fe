@@ -29,6 +29,7 @@ import {
   MessageSquare,
   Heart,
 } from "lucide-react";
+import { GamificationCard } from "@/components/GamificationCard";
 import type { Thread, ThreadListResponse, PublicProfile } from "@/types";
 
 // Helper untuk display role
@@ -42,7 +43,7 @@ function getRoleDisplayName(roleName: string): string {
 }
 
 // Komponen untuk badge role dengan warna
-function RoleBadge({ role }: { role: string }) {
+function RoleBadgeComponent({ role }: { role: string }) {
   const roleColors: Record<string, string> = {
     admin: "bg-red-500/10 text-red-500 border-red-500/20",
     guru: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -59,6 +60,7 @@ function RoleBadge({ role }: { role: string }) {
     </Badge>
   );
 }
+
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -239,7 +241,7 @@ export default function UserProfilePage() {
             <div className="flex-1 text-center sm:text-left sm:pb-2">
               <h2 className="text-2xl font-bold">{profile.username}</h2>
               <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
-                <RoleBadge role={profile.role} />
+                <RoleBadgeComponent role={profile.role} />
                 {profile.class_grade && (
                   <Badge variant="outline" className="gap-1">
                     Kelas {profile.class_grade}
@@ -274,6 +276,14 @@ export default function UserProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Gamification Status Card */}
+      {profile.gamification_status && (
+        <GamificationCard 
+          gamificationStatus={profile.gamification_status} 
+          showLeaderboardLink={true}
+        />
+      )}
 
       {/* Statistik */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

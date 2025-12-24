@@ -23,6 +23,7 @@ import {
   ArrowRight,
   Eye,
 } from "lucide-react";
+import { LeaderboardPreview } from "@/components/LeaderboardPreview";
 import type { Thread, ThreadListResponse } from "@/types";
 
 export default function HomePage() {
@@ -113,6 +114,11 @@ export default function HomePage() {
             </p>
           </CardContent>
         </Card>
+      </section>
+
+      {/* Leaderboard Preview Section */}
+      <section>
+        <LeaderboardPreview />
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -47,6 +47,8 @@ const getNotificationTitle = (type: Notification["type"]) => {
       return "💬 Balasan Baru";
     case "reply_post":
       return "💬 Balasan Baru";
+    case "rank_up":
+      return "🎉 Naik Rank!";
     default:
       return "🔔 Notifikasi";
   }
@@ -133,8 +135,12 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
         action: {
           label: "Lihat",
           onClick: () => {
-            // Navigate to thread using slug
-            if (notification.entity_slug) {
+            // Handle different notification types
+            if (notification.entity_type === "gamification" || notification.type === "rank_up") {
+              // Navigate to leaderboard for gamification notifications
+              window.location.href = "/leaderboard";
+            } else if (notification.entity_slug) {
+              // Navigate to thread using slug
               window.location.href = `/threads/${notification.entity_slug}`;
             }
           },

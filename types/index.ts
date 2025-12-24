@@ -253,9 +253,9 @@ export interface Notification {
   user_id: string;
   actor_id: string;
   entity_id: string;
-  entity_type: "thread" | "post";
+  entity_type: "thread" | "post" | "gamification";
   entity_slug: string;
-  type: "reply_post" | "reply_thread" | "like_thread" | "like_post";
+  type: "reply_post" | "reply_thread" | "like_thread" | "like_post" | "rank_up";
   message: string;
   is_read: boolean;
   created_at: string;
@@ -355,3 +355,51 @@ export interface MenfessListResponse {
   page: number;
   limit: number;
 }
+
+// ==================== Gamification ====================
+export interface GamificationStatus {
+  // All-Time Rank (Permanent)
+  rank_name: string;
+  next_rank: string;
+  current_points: number;
+  target_points: number;
+  progress: number;
+  // Weekly Activity Context
+  weekly_points?: number;
+  weekly_label?: string;
+}
+
+// ==================== Public Profile (Updated) ====================
+export interface PublicProfile {
+  username: string;
+  role: string;
+  avatar_url?: string;
+  created_at: string;
+  class_grade?: string;
+  bio?: string;
+  gamification_status?: GamificationStatus;
+}
+
+// ==================== My Profile Response ====================
+export interface MyProfileResponse {
+  user: User;
+  role: Role;
+  profile: Profile;
+  gamification_status?: GamificationStatus;
+}
+
+// ==================== Leaderboard ====================
+export interface LeaderboardEntry {
+  username: string;
+  avatar_url?: string | null;
+  role: string;
+  position: number;
+  gamification_status: GamificationStatus;
+}
+
+export interface LeaderboardResponse {
+  data: LeaderboardEntry[];
+}
+
+export type LeaderboardTimeframe = "all_time" | "weekly";
+

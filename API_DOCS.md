@@ -501,7 +501,14 @@ Mendapatkan data profil publik user berdasarkan username. Endpoint ini tidak mem
   "avatar_url": "https://...",
   "created_at": "2024-01-01T00:00:00Z",
   "class_grade": "12A",
-  "bio": "Hello world"
+  "bio": "Hello world",
+  "gamification_status": {
+    "rank_name": "Aktivis",
+    "next_rank": "Tokoh",
+    "current_points": 750,
+    "target_points": 3000,
+    "progress": 25.00
+  }
 }
 ```
 
@@ -548,6 +555,13 @@ Authorization: Bearer <user_token>
     "class_grade": "12A",
     "bio": "Hello world",
     "created_at": "2024-01-01T00:00:00Z"
+  },
+  "gamification_status": {
+    "rank_name": "Aktivis",
+    "next_rank": "Tokoh",
+    "current_points": 750,
+    "target_points": 3000,
+    "progress": 25.00
   }
 }
 ```

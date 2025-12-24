@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
-import { Bell, Check, CheckCheck, MessageSquare, Heart, Loader2 } from "lucide-react";
+import { Bell, Check, CheckCheck, MessageSquare, Heart, Loader2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -79,12 +79,18 @@ export function NotificationDropdown() {
       case "reply_thread":
       case "reply_post":
         return <MessageSquare className="h-4 w-4 text-blue-500" />;
+      case "rank_up":
+        return <Trophy className="h-4 w-4 text-yellow-500" />;
       default:
         return <Bell className="h-4 w-4" />;
     }
   };
 
   const getNotificationLink = (notification: Notification) => {
+    // Handle gamification notifications
+    if (notification.entity_type === "gamification" || notification.type === "rank_up") {
+      return `/profile`;
+    }
     // Navigate to thread using slug
     if (notification.entity_slug) {
       return `/threads/${notification.entity_slug}`;
@@ -176,7 +182,7 @@ export function NotificationDropdown() {
                       <div className="flex items-center gap-2">
                         {getNotificationIcon(notification.type)}
                         <p className="text-sm font-medium truncate">
-                          {notification.actor?.username || "Seseorang"}
+                          {notification.type === "rank_up" ? "Sistem" : (notification.actor?.username || "Seseorang")}
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">

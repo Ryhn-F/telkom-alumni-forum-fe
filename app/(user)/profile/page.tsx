@@ -26,15 +26,41 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import type { Thread, ThreadListResponse } from "@/types";
+import { GamificationCard } from "@/components/GamificationCard";
+import type { Thread, ThreadListResponse, GamificationStatus } from "@/types";
+
+interface MyProfileResponse {
+  gamification_status?: GamificationStatus;
+}
 
 export default function ProfilePage() {
   const { user, role, profile } = useAuthStore();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
+  const [gamificationStatus, setGamificationStatus] = useState<GamificationStatus | null>(null);
+  const [gamificationLoading, setGamificationLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5; // Show 5 per page
+
+  // Fetch gamification status dari /api/profile/me
+  useEffect(() => {
+    const fetchGamification = async () => {
+      setGamificationLoading(true);
+      try {
+        const res = await api.get<MyProfileResponse>("/api/profile/me");
+        if (res.data.gamification_status) {
+          setGamificationStatus(res.data.gamification_status);
+        }
+      } catch (err) {
+        console.error("Failed to fetch gamification status:", err);
+      } finally {
+        setGamificationLoading(false);
+      }
+    };
+
+    fetchGamification();
+  }, []);
 
   useEffect(() => {
     if (user?.username) {
@@ -99,6 +125,28 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Gamification Status Card */}
+      {gamificationLoading ? (
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-start gap-4">
+              <Skeleton className="w-12 h-12 rounded-xl" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+            <div className="mt-4 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      ) : gamificationStatus ? (
+        <GamificationCard gamificationStatus={gamificationStatus} />
+      ) : null}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-4">
