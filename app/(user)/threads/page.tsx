@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +19,6 @@ import {
   Eye,
   MessageSquare,
   Heart,
-  Search,
   Plus,
   ChevronLeft,
   ChevronRight,
@@ -43,9 +41,7 @@ function ThreadsContent() {
   const categoryId = searchParams.get("category_id") || "";
   const audience = searchParams.get("audience") || "";
   const sortBy = searchParams.get("sort_by") || "";
-  const search = searchParams.get("search") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,7 +51,6 @@ function ThreadsContent() {
         if (categoryId) params.category_id = categoryId;
         if (audience) params.audience = audience;
         if (sortBy) params.sort_by = sortBy;
-        if (search) params.search = search;
         const [threadsRes, categoriesRes] = await Promise.all([
           api.get<ThreadListResponse>("/api/threads", { params }),
           api.get<CategoryListResponse>("/api/categories"),
@@ -70,7 +65,7 @@ function ThreadsContent() {
       }
     };
     fetchData();
-  }, [categoryId, audience, sortBy, search, page]);
+  }, [categoryId, audience, sortBy, page]);
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -80,10 +75,6 @@ function ThreadsContent() {
     router.push(`/threads?${params.toString()}`);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateFilter("search", searchInput);
-  };
   const goToPage = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
@@ -109,17 +100,6 @@ function ThreadsContent() {
       <Card>
         <CardContent className="pt-4">
           <div className="flex flex-col lg:flex-row gap-4">
-            <form onSubmit={handleSearch} className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Cari diskusi..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </form>
             <Select
               value={categoryId || "all"}
               onValueChange={(v) => updateFilter("category_id", v === "all" ? "" : v)}

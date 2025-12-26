@@ -10,8 +10,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Forum Alumni Telkom",
-  description: "Platform diskusi dan forum untuk alumni Telkom",
+  title: "Telkom Forum",
+  description: "Platform diskusi dan forum untuk warga Telkom",
 };
 
 export default function RootLayout({

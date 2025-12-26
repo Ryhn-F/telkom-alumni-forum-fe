@@ -320,9 +320,19 @@ export function SearchTrigger() {
 
   return (
     <>
+      {/* Mobile: Icon only */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 md:hidden"
+        onClick={() => setIsOpen(true)}
+      >
+        <Search className="h-4 w-4" />
+      </Button>
+      {/* Desktop: Full search bar */}
       <Button
         variant="outline"
-        className="relative h-10 w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
+        className="relative h-10 hidden md:flex justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
         onClick={() => setIsOpen(true)}
       >
         <Search className="mr-2 h-4 w-4" />

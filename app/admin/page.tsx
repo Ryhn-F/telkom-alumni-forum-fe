@@ -51,7 +51,7 @@ export default function AdminDashboardPage() {
       <div>
         <h1 className="text-2xl font-bold">Dashboard Admin</h1>
         <p className="text-muted-foreground">
-          Selamat datang di panel administrasi Forum Alumni Telkom
+          Selamat datang di panel administrasi Telkom Forum
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

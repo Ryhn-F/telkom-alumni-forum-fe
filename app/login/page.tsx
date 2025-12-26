@@ -47,13 +47,8 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl font-bold text-primary-foreground">
-              T
-            </span>
-          </div>
           <CardTitle className="text-2xl font-bold">
-            Forum Alumni Telkom
+            Telkom<span className="text-primary">Forum</span>
           </CardTitle>
           <CardDescription>
             Masuk ke akun Anda untuk melanjutkan
