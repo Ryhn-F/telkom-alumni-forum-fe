@@ -131,6 +131,9 @@ export default function EditProfilePage() {
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={loading}
               />
+              <p className="text-xs text-muted-foreground">
+                Spasi akan otomatis diganti dengan underscore (_)
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
@@ -139,20 +142,23 @@ export default function EditProfilePage() {
                 Email tidak dapat diubah
               </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password Baru</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                placeholder="Kosongkan jika tidak ingin mengubah"
-              />
-              <p className="text-xs text-muted-foreground">
-                Minimal 8 karakter
-              </p>
-            </div>
+            {/* Only show password field if user is NOT using Google OAuth */}
+            {!user?.email?.endsWith("@student.smktelkom-jkt.sch.id") && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Password Baru</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  placeholder="Kosongkan jika tidak ingin mengubah"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Minimal 8 karakter
+                </p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
               <Textarea

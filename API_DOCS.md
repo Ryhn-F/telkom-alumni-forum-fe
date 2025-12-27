@@ -503,11 +503,13 @@ Mendapatkan data profil publik user berdasarkan username. Endpoint ini tidak mem
   "class_grade": "12A",
   "bio": "Hello world",
   "gamification_status": {
-    "rank_name": "Aktivis",
-    "next_rank": "Tokoh",
-    "current_points": 750,
-    "target_points": 3000,
-    "progress": 25.00
+    "rank_name": "Tokoh",
+    "next_rank": "Sepuh",
+    "current_points": 5500,
+    "target_points": 8000,
+    "progress": 68.75,
+    "weekly_points": 120,         // ✅ Sekarang terisi!
+    "weekly_label": "🔥 On Fire!" // ✅ Label muncul
   }
 }
 ```
@@ -557,11 +559,13 @@ Authorization: Bearer <user_token>
     "created_at": "2024-01-01T00:00:00Z"
   },
   "gamification_status": {
-    "rank_name": "Aktivis",
-    "next_rank": "Tokoh",
-    "current_points": 750,
-    "target_points": 3000,
-    "progress": 25.00
+    "rank_name": "Tokoh",
+    "next_rank": "Sepuh",
+    "current_points": 5500,
+    "target_points": 8000,
+    "progress": 68.75,
+    "weekly_points": 120,         // ✅ Sekarang terisi!
+    "weekly_label": "🔥 On Fire!" // ✅ Label muncul
   }
 }
 ```
@@ -695,6 +699,35 @@ Login untuk semua user (tidak ada perubahan).
   "profile": {...},
   "search_token": "eyJhbGc... (Token untuk Meilisearch)"
 }
+```
+
+### ✅ GET /api/auth/google/login
+
+Menginisialisasi proses login menggunakan Google OAuth. Endpoint ini akan melakukan **redirect** ke halaman login Google.
+
+**Cara Penggunaan:**
+Frontend cukup membuat link/tombol yang mengarah ke URL ini.
+
+```
+GET http://localhost:8080/api/auth/google/login
+```
+
+**Response (307 Temporary Redirect):**
+Browser akan diarahkan ke Google.
+
+### ✅ GET /api/auth/google/callback
+
+Endpoint callback yang dipanggil oleh Google setelah user memberikan izin.
+
+**Query Parameter:**
+- `code`: Authorization code dari Google.
+
+**Behavior:**
+- Backend akan menukar `code` dengan Token.
+- Backend akan mengecek domain email (wajib `@student.smktelkom-jkt.sch.id`).
+- Jika user belum ada, akan dibuatkan user baru secara otomatis.
+- **Success Link**: Redirect ke `FRONTEND_URL/auth/google/callback?token=ACCESS_TOKEN&search_token=SEARCH_TOKEN`.
+- **Error Link**: Redirect ke `FRONTEND_URL/login?error=MESSAGE`.
 ```
 
 ## Error Response
