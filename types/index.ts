@@ -1,3 +1,6 @@
+// Re-export reactions types
+export * from "./reactions";
+
 // ==================== Role ====================
 export interface Role {
   id: number;
@@ -94,8 +97,10 @@ export interface Thread {
   audience: "semua" | "guru" | "siswa";
   views: number;
   author: Author;
-  likes_count?: number;
-  is_liked?: boolean;
+  reactions?: {
+    counts: { [emoji: string]: number };
+    user_reacted: string | null;
+  };
   attachments: Attachment[];
   created_at: string;
 }
@@ -126,11 +131,13 @@ export interface Post {
   id: string;
   thread_id: string;
   parent_id?: string | null;
-  parent?: PostParent;  // Populated when API returns parent post data
+  parent?: PostParent; // Populated when API returns parent post data
   content: string;
   author: Author;
-  likes_count?: number;
-  is_liked?: boolean;
+  reactions?: {
+    counts: { [emoji: string]: number };
+    user_reacted: string | null;
+  };
   attachments: Attachment[];
   created_at: string;
   replies?: Post[];
@@ -255,11 +262,18 @@ export interface Notification {
   entity_id: string;
   entity_type: "thread" | "post" | "gamification";
   entity_slug: string;
-  type: "reply_post" | "reply_thread" | "like_thread" | "like_post" | "rank_up";
+  type:
+    | "reply_post"
+    | "reply_thread"
+    | "like_thread"
+    | "like_post"
+    | "rank_up"
+    | "reaction";
   message: string;
   is_read: boolean;
   created_at: string;
   actor?: NotificationActor;
+  emoji?: string; // For reaction notifications
 }
 
 export interface NotificationListResponse {
@@ -297,7 +311,6 @@ export interface MeilisearchThread {
   audience: string;
   allowed_roles?: string[];
   views: number;
-  likes_count?: number;
   created_at: number;
   category_id: string;
   user: MeilisearchUser;
@@ -316,7 +329,6 @@ export interface MeilisearchPost {
   content: string;
   parent_id?: string;
   allowed_roles?: string[];
-  likes_count?: number;
   created_at: number;
   user: MeilisearchUser;
   _formatted?: {
@@ -346,6 +358,10 @@ export interface MeilisearchPostResult {
 export interface Menfess {
   id: string;
   content: string;
+  reactions?: {
+    counts: { [emoji: string]: number };
+    user_reacted: string | null;
+  };
   created_at: string;
 }
 
@@ -402,4 +418,3 @@ export interface LeaderboardResponse {
 }
 
 export type LeaderboardTimeframe = "all_time" | "weekly";
-

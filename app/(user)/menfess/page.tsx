@@ -39,7 +39,13 @@ import {
   Info,
   Github,
 } from "lucide-react";
-import type { Menfess, MenfessListResponse, MessageResponse } from "@/types";
+import type {
+  Menfess,
+  MenfessListResponse,
+  MessageResponse,
+  Reactions,
+} from "@/types";
+import { ReactionBar } from "@/components/ReactionBar";
 
 const MENFESS_CONTENT_MAX = 1000;
 
@@ -57,6 +63,18 @@ export default function MenfessPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 10;
+
+  // Handler for updating reactions in list
+  const handleReactionsChange = (
+    menfessId: string,
+    newReactions: Reactions
+  ) => {
+    setMenfessList((prev) =>
+      prev.map((m) =>
+        m.id === menfessId ? { ...m, reactions: newReactions } : m
+      )
+    );
+  };
 
   // Block guru role
   useEffect(() => {
@@ -101,7 +119,9 @@ export default function MenfessPage() {
       return;
     }
     if (content.length > MENFESS_CONTENT_MAX) {
-      toast.error(`Pesan tidak boleh lebih dari ${MENFESS_CONTENT_MAX} karakter`);
+      toast.error(
+        `Pesan tidak boleh lebih dari ${MENFESS_CONTENT_MAX} karakter`
+      );
       return;
     }
 
@@ -143,9 +163,9 @@ export default function MenfessPage() {
                 🔒 Student-Only Zone & 100% Anonim
               </CardTitle>
               <CardDescription className="mt-1">
-                Ruang khusus siswa. Guru tidak bisa akses, tidak bisa
-                lihat, dan tidak bisa posting. Privasi dijaga enkripsi,
-                identitasmu rahasia.
+                Ruang khusus siswa. Guru tidak bisa akses, tidak bisa lihat, dan
+                tidak bisa posting. Privasi dijaga enkripsi, identitasmu
+                rahasia.
               </CardDescription>
             </div>
           </div>
@@ -165,8 +185,8 @@ export default function MenfessPage() {
                   Transparansi Privasi: Bagaimana Fitur Ini Bekerja?
                 </DialogTitle>
                 <DialogDescription>
-                  Berikut adalah langkah teknis yang diterapkan untuk
-                  memastikan anonimitas Anda:
+                  Berikut adalah langkah teknis yang diterapkan untuk memastikan
+                  anonimitas Anda:
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-6 pt-4">
@@ -209,7 +229,9 @@ export default function MenfessPage() {
                         Sistem mengecek kuota Anda menggunakan kode acak (Hash)
                         yang berubah setiap hari.
                       </li>
-                      <li>Besok, kode acak ini akan hangus dan diganti baru.</li>
+                      <li>
+                        Besok, kode acak ini akan hangus dan diganti baru.
+                      </li>
                       <li>
                         Akibatnya, admin tidak bisa melacak riwayat pengiriman
                         Anda kemarin, karena kuncinya sudah dimusnahkan oleh
@@ -249,8 +271,8 @@ export default function MenfessPage() {
                     </h4>
                     <p className="text-sm text-muted-foreground mt-1">
                       Kami tidak menyimpan waktu pengiriman hingga ke satuan
-                      detik untuk mencegah pelacakan
-                      melalui pencocokan waktu (time-correlation).
+                      detik untuk mencegah pelacakan melalui pencocokan waktu
+                      (time-correlation).
                     </p>
                   </div>
                 </div>
@@ -272,8 +294,8 @@ export default function MenfessPage() {
                     </p>
                     <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
                       <li>
-                        Akun dengan role Guru secara sistem
-                        tidak bisa mengakses, membaca, ataupun mengirim Menfess.
+                        Akun dengan role Guru secara sistem tidak bisa
+                        mengakses, membaca, ataupun mengirim Menfess.
                       </li>
                       <li>
                         Fitur ini tidak akan muncul di menu navigasi Guru.
@@ -383,9 +405,7 @@ export default function MenfessPage() {
       {/* Menfess List */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
-            Menfess Terbaru ({total})
-          </h2>
+          <h2 className="text-lg font-semibold">Menfess Terbaru ({total})</h2>
           {totalPages > 1 && (
             <span className="text-sm text-muted-foreground">
               Halaman {page} dari {totalPages}
@@ -407,7 +427,10 @@ export default function MenfessPage() {
           <>
             <div className="space-y-4">
               {menfessList.map((menfess) => (
-                <Card key={menfess.id} className="hover-lift border-border/50 hover:border-border">
+                <Card
+                  key={menfess.id}
+                  className="hover-lift border-border/50 hover:border-border"
+                >
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-muted rounded-full">
@@ -429,9 +452,22 @@ export default function MenfessPage() {
                             )}
                           </span>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90">
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90 mb-3">
                           {menfess.content}
                         </p>
+                        <ReactionBar
+                          referenceId={menfess.id}
+                          referenceType="menfess"
+                          reactions={
+                            menfess.reactions || {
+                              counts: {},
+                              user_reacted: null,
+                            }
+                          }
+                          onReactionsChange={(newReactions) =>
+                            handleReactionsChange(menfess.id, newReactions)
+                          }
+                        />
                       </div>
                     </div>
                   </CardContent>

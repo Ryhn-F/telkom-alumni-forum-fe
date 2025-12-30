@@ -18,7 +18,6 @@ import {
 import {
   Eye,
   MessageSquare,
-  Heart,
   Plus,
   ChevronLeft,
   ChevronRight,
@@ -102,7 +101,9 @@ function ThreadsContent() {
           <div className="flex flex-col lg:flex-row gap-4">
             <Select
               value={categoryId || "all"}
-              onValueChange={(v) => updateFilter("category_id", v === "all" ? "" : v)}
+              onValueChange={(v) =>
+                updateFilter("category_id", v === "all" ? "" : v)
+              }
             >
               <SelectTrigger className="w-full lg:w-[180px]">
                 <SelectValue placeholder="Semua Kategori" />
@@ -134,7 +135,9 @@ function ThreadsContent() {
             </Select>
             <Select
               value={sortBy || "newest"}
-              onValueChange={(v) => updateFilter("sort_by", v === "newest" ? "" : v)}
+              onValueChange={(v) =>
+                updateFilter("sort_by", v === "newest" ? "" : v)
+              }
             >
               <SelectTrigger className="w-full lg:w-[150px]">
                 <SelectValue placeholder="Terbaru" />
@@ -147,7 +150,7 @@ function ThreadsContent() {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Thread list with staggered animation */}
       <div className="space-y-4 animate-stagger">
         {loading ? (
@@ -208,10 +211,6 @@ function ThreadsContent() {
                       <div className="flex items-center gap-1">
                         <Eye className="h-3 w-3" />
                         {thread.views}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" />
-                        {thread.likes_count || 0}
                       </div>
                     </div>
                   </div>

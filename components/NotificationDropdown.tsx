@@ -4,7 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
-import { Bell, Check, CheckCheck, MessageSquare, Heart, Loader2, Trophy } from "lucide-react";
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  MessageSquare,
+  Heart,
+  Loader2,
+  Trophy,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -55,7 +63,12 @@ export function NotificationDropdown() {
     return () => {
       disconnectWebSocket();
     };
-  }, [connectWebSocket, disconnectWebSocket, fetchNotifications, fetchUnreadCount]);
+  }, [
+    connectWebSocket,
+    disconnectWebSocket,
+    fetchNotifications,
+    fetchUnreadCount,
+  ]);
 
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
@@ -71,11 +84,14 @@ export function NotificationDropdown() {
     setIsOpen(false);
   };
 
-  const getNotificationIcon = (type: Notification["type"]) => {
-    switch (type) {
+  const getNotificationIcon = (notification: Notification) => {
+    switch (notification.type) {
       case "like_thread":
       case "like_post":
         return <Heart className="h-4 w-4 text-red-500" />;
+      case "reaction":
+        // Show the emoji itself as icon
+        return <Bell className="h-4 w-4 text-white-500" />;
       case "reply_thread":
       case "reply_post":
         return <MessageSquare className="h-4 w-4 text-blue-500" />;
@@ -88,7 +104,10 @@ export function NotificationDropdown() {
 
   const getNotificationLink = (notification: Notification) => {
     // Handle gamification notifications
-    if (notification.entity_type === "gamification" || notification.type === "rank_up") {
+    if (
+      notification.entity_type === "gamification" ||
+      notification.type === "rank_up"
+    ) {
       return `/profile`;
     }
     // Navigate to thread using slug
@@ -126,7 +145,10 @@ export function NotificationDropdown() {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto" align="end">
+      <DropdownMenuContent
+        className="w-80 max-h-96 overflow-y-auto"
+        align="end"
+      >
         <DropdownMenuLabel className="flex items-center justify-between">
           <span className="font-semibold">Notifikasi</span>
           {unreadCount > 0 && (
@@ -174,15 +196,18 @@ export function NotificationDropdown() {
                     <Avatar className="h-8 w-8 shrink-0">
                       <AvatarImage src={notification.actor?.avatar_url} />
                       <AvatarFallback>
-                        {notification.actor?.username?.[0]?.toUpperCase() || "U"}
+                        {notification.actor?.username?.[0]?.toUpperCase() ||
+                          "U"}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        {getNotificationIcon(notification.type)}
+                        {getNotificationIcon(notification)}
                         <p className="text-sm font-medium truncate">
-                          {notification.type === "rank_up" ? "Sistem" : (notification.actor?.username || "Seseorang")}
+                          {notification.type === "rank_up"
+                            ? "Sistem"
+                            : notification.actor?.username || "Seseorang"}
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">

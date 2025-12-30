@@ -27,7 +27,6 @@ import {
   User,
   Eye,
   MessageSquare,
-  Heart,
 } from "lucide-react";
 import { GamificationCard } from "@/components/GamificationCard";
 import type { Thread, ThreadListResponse, PublicProfile } from "@/types";
@@ -51,16 +50,12 @@ function RoleBadgeComponent({ role }: { role: string }) {
   };
 
   return (
-    <Badge 
-      variant="outline" 
-      className={`gap-1 ${roleColors[role] || ""}`}
-    >
+    <Badge variant="outline" className={`gap-1 ${roleColors[role] || ""}`}>
       <GraduationCap className="h-3 w-3" />
       {getRoleDisplayName(role)}
     </Badge>
   );
 }
-
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -185,9 +180,14 @@ export default function UserProfilePage() {
               </div>
               <h2 className="text-xl font-semibold">{error}</h2>
               <p className="text-muted-foreground">
-                Pengguna dengan username &quot;{username}&quot; tidak dapat ditemukan.
+                Pengguna dengan username &quot;{username}&quot; tidak dapat
+                ditemukan.
               </p>
-              <Button onClick={() => router.back()} variant="outline" className="gap-2">
+              <Button
+                onClick={() => router.back()}
+                variant="outline"
+                className="gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 Kembali
               </Button>
@@ -222,7 +222,7 @@ export default function UserProfilePage() {
       <Card className="overflow-hidden">
         {/* Banner Gradient */}
         <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5" />
-        
+
         <CardContent className="relative pt-0">
           {/* Avatar yang overlap dengan banner */}
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-12">
@@ -237,7 +237,7 @@ export default function UserProfilePage() {
                   .slice(0, 2)}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 text-center sm:text-left sm:pb-2">
               <h2 className="text-2xl font-bold">{profile.username}</h2>
               <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
@@ -279,8 +279,8 @@ export default function UserProfilePage() {
 
       {/* Gamification Status Card */}
       {profile.gamification_status && (
-        <GamificationCard 
-          gamificationStatus={profile.gamification_status} 
+        <GamificationCard
+          gamificationStatus={profile.gamification_status}
           showLeaderboardLink={true}
         />
       )}
@@ -308,19 +308,6 @@ export default function UserProfilePage() {
                 <p className="text-sm text-muted-foreground">Total Views</p>
               </div>
               <Eye className="h-8 w-8 text-primary/20" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">
-                  {threads.reduce((acc, t) => acc + (t.likes_count || 0), 0)}
-                </p>
-                <p className="text-sm text-muted-foreground">Total Likes</p>
-              </div>
-              <Heart className="h-8 w-8 text-primary/20" />
             </div>
           </CardContent>
         </Card>
@@ -363,12 +350,6 @@ export default function UserProfilePage() {
                           <Eye className="h-3 w-3" />
                           <span>{thread.views}</span>
                         </div>
-                        {thread.likes_count !== undefined && (
-                          <div className="flex items-center gap-1">
-                            <Heart className="h-3 w-3" />
-                            <span>{thread.likes_count}</span>
-                          </div>
-                        )}
                         <span>•</span>
                         <span>
                           {new Date(thread.created_at).toLocaleDateString(

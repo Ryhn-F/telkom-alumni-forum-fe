@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
@@ -22,7 +21,6 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   Eye,
-  Heart,
   MessageSquare,
   Send,
   MoreVertical,
@@ -34,11 +32,19 @@ import {
   ChevronRight,
   CornerDownRight,
 } from "lucide-react";
-import type { Thread, Post, PostParent, PostListResponse, MessageResponse } from "@/types";
+import type {
+  Thread,
+  Post,
+  PostParent,
+  PostListResponse,
+  MessageResponse,
+  Reactions,
+} from "@/types";
 import { TiptapEditor } from "@/components/TiptapEditor";
 import { RichTextDisplay } from "@/components/RichTextDisplay";
+import { ReactionBar } from "@/components/ReactionBar";
 
-  export default function ThreadDetailPage() {
+export default function ThreadDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user, role } = useAuthStore();
@@ -48,8 +54,10 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
   const [loading, setLoading] = useState(true);
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
+  const [threadReactions, setThreadReactions] = useState<Reactions>({
+    counts: {},
+    user_reacted: null,
+  });
   const [replyAttachmentIds, setReplyAttachmentIds] = useState<number[]>([]);
 
   // Pagination state
@@ -73,11 +81,11 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
         `/api/threads/${threadId}/posts`,
         { params: { page, limit: POSTS_PER_PAGE } }
       );
-      
+
       // Build a map of all posts for parent reference
       const postsData = postsRes.data.data || [];
       const newPostMap = new Map<string, PostParent>();
-      
+
       // Recursive function to collect all posts including nested ones
       const collectPosts = (postList: Post[]) => {
         for (const post of postList) {
@@ -93,7 +101,7 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
       };
       collectPosts(postsData);
       setPostMap(newPostMap);
-      
+
       // Keep tree structure - don't flatten
       setPosts(postsData);
       setTotalPages(postsRes.data.meta?.total_pages || 1);
@@ -111,20 +119,12 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
         // Fetch thread details by slug
         const threadRes = await api.get<Thread>(`/api/threads/slug/${slug}`);
         const threadData = threadRes.data;
-        
-        setThread(threadData);
-        // Fetch thread like status
-        try {
-          const likeRes = await api.get<{ liked: boolean }>(
-            `/api/threads/${threadData.id}/like`
-          );
-          setLiked(likeRes.data.liked);
-        } catch {
-          // If 401/403 or error, default to false or keep existing
-          setLiked(threadData.is_liked || false);
-        }
 
-        setLikesCount(threadData.likes_count || 0);
+        setThread(threadData);
+        // Set reactions from thread data
+        setThreadReactions(
+          threadData.reactions || { counts: {}, user_reacted: null }
+        );
 
         // Fetch posts using the actual thread ID with pagination
         await fetchPosts(threadData.id, 1);
@@ -145,29 +145,14 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
     }
   }, [currentPage]);
 
-  const handleLike = async () => {
-    if (!thread) return;
-    try {
-      if (liked) {
-        await api.delete(`/api/threads/${thread.id}/like`);
-        setLiked(false);
-        setLikesCount((p) => p - 1);
-      } else {
-        await api.post(`/api/threads/${thread.id}/like`);
-        setLiked(true);
-        setLikesCount((p) => p + 1);
-      }
-    } catch {
-      toast.error("Gagal memproses");
-    }
-  };
-
   // Pagination handler
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
       // Scroll to replies section
-      document.getElementById("replies-section")?.scrollIntoView({ behavior: "smooth" });
+      document
+        .getElementById("replies-section")
+        ?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -175,7 +160,9 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
   const handleReplyToPost = (post: Post) => {
     setReplyToPost(post);
     // Scroll to reply form
-    document.getElementById("reply-form")?.scrollIntoView({ behavior: "smooth" });
+    document
+      .getElementById("reply-form")
+      ?.scrollIntoView({ behavior: "smooth" });
   };
 
   // Cancel replying to a post
@@ -193,31 +180,37 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
     }
     setSubmitting(true);
     try {
-      const payload: { content: string; parent_id?: string; attachment_ids?: number[] } = {
+      const payload: {
+        content: string;
+        parent_id?: string;
+        attachment_ids?: number[];
+      } = {
         content: replyContent,
       };
-      
+
       // Add parent_id if replying to a specific post
       if (replyToPost) {
         payload.parent_id = replyToPost.id;
       }
-      
+
       if (replyAttachmentIds.length > 0) {
         payload.attachment_ids = replyAttachmentIds;
       }
 
       await api.post<Post>(`/api/threads/${thread.id}/posts`, payload);
-      
+
       // Reset form
       setReplyContent("");
       setReplyAttachmentIds([]);
       setReplyToPost(null);
-      
+
       // Refetch posts to show the new reply
       await fetchPosts(thread.id, currentPage);
       setTotalItems((prev) => prev + 1);
-      
-      toast.success(replyToPost ? "Balasan berhasil dikirim" : "Balasan berhasil dikirim");
+
+      toast.success(
+        replyToPost ? "Balasan berhasil dikirim" : "Balasan berhasil dikirim"
+      );
     } catch {
       toast.error("Gagal mengirim balasan");
     } finally {
@@ -249,7 +242,9 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
   };
 
   const handleUpdatePost = (updatedPost: Post) => {
-    setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+    setPosts((prev) =>
+      prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+    );
   };
 
   const isOwner = thread?.author.username === user?.username;
@@ -294,12 +289,14 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
             <ArrowLeft className="h-4 w-4" />
             Kembali
           </Button>
-          
+
           <div className="flex items-start justify-between">
             <div className="space-y-3">
               {/* Category & Audience badges */}
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary" className="font-medium">{thread.category_name}</Badge>
+                <Badge variant="secondary" className="font-medium">
+                  {thread.category_name}
+                </Badge>
                 <Badge variant="outline" className="text-xs">
                   {thread.audience === "semua"
                     ? "Umum"
@@ -308,12 +305,12 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
                     : "Siswa"}
                 </Badge>
               </div>
-              
+
               {/* Title with more prominence and spacing */}
               <h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight">
                 {thread.title}
               </h1>
-              
+
               {/* Author info with subtle styling */}
               <div className="flex items-center gap-3 text-sm text-muted-foreground pt-1">
                 <Link
@@ -327,7 +324,9 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
                       {thread.author.username[0].toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hover:underline">{thread.author.username}</span>
+                  <span className="hover:underline">
+                    {thread.author.username}
+                  </span>
                 </Link>
                 <span>•</span>
                 <span>
@@ -372,28 +371,27 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
           <div className="mb-8">
             <RichTextDisplay content={thread.content} />
           </div>
-          
+
           {/* Visual break before actions */}
           <div className="divider-gradient my-6" />
-          
-          {/* Actions with better styling */}
-          <div className="flex items-center gap-4">
-            <Button
-              variant={liked ? "default" : "outline"}
-              size="sm"
-              onClick={handleLike}
-              className="gap-2 hover:scale-105 transition-transform"
-            >
-              <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
-              {likesCount}
-            </Button>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Eye className="h-4 w-4" />
-              <span>{thread.views} views</span>
-            </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <MessageSquare className="h-4 w-4" />
-              <span>{posts.length} balasan</span>
+
+          {/* Reactions and stats */}
+          <div className="flex flex-col gap-4">
+            <ReactionBar
+              referenceId={thread.id}
+              referenceType="thread"
+              reactions={threadReactions}
+              onReactionsChange={setThreadReactions}
+            />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Eye className="h-4 w-4" />
+                <span>{thread.views} views</span>
+              </div>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <MessageSquare className="h-4 w-4" />
+                <span>{totalItems} balasan</span>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -409,7 +407,7 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
             </span>
           )}
         </div>
-        
+
         {postsLoading ? (
           // Loading skeleton for posts
           Array.from({ length: 3 }).map((_, i) => (
@@ -487,7 +485,9 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
                 <div className="flex items-center gap-2 text-sm">
                   <CornerDownRight className="h-4 w-4 text-primary" />
                   <span className="text-muted-foreground">Membalas</span>
-                  <span className="font-medium">{replyToPost.author.username}</span>
+                  <span className="font-medium">
+                    {replyToPost.author.username}
+                  </span>
                 </div>
                 <Button
                   type="button"
@@ -504,18 +504,25 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
               </p>
             </div>
           )}
-          
+
           <form onSubmit={handleReply} className="space-y-4">
             <TiptapEditor
               value={replyContent}
               onChange={setReplyContent}
-              onAttachmentUpload={(id) => setReplyAttachmentIds((prev) => [...prev, id])}
+              onAttachmentUpload={(id) =>
+                setReplyAttachmentIds((prev) => [...prev, id])
+              }
               isLoading={submitting}
-              placeholder={replyToPost ? `Balas ${replyToPost.author.username}...` : "Tulis balasan Anda..."}
+              placeholder={
+                replyToPost
+                  ? `Balas ${replyToPost.author.username}...`
+                  : "Tulis balasan Anda..."
+              }
             />
             <div className="text-xs text-muted-foreground text-right">
-                {replyContent.replace(/<[^>]*>/g, "").length}/5000
-            </div>            <div className="flex justify-end gap-2">
+              {replyContent.replace(/<[^>]*>/g, "").length}/5000
+            </div>{" "}
+            <div className="flex justify-end gap-2">
               {replyToPost && (
                 <Button
                   type="button"
@@ -528,7 +535,11 @@ import { RichTextDisplay } from "@/components/RichTextDisplay";
               )}
               <Button
                 type="submit"
-                disabled={submitting || !replyContent.trim() || replyContent === "<p></p>"}
+                disabled={
+                  submitting ||
+                  !replyContent.trim() ||
+                  replyContent === "<p></p>"
+                }
                 className="gap-2"
               >
                 {submitting ? (
@@ -622,8 +633,9 @@ function PostItem({
   onUpdate: (post: Post) => void;
   onReply: (post: Post) => void;
 }) {
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(post.likes_count || 0);
+  const [postReactions, setPostReactions] = useState<Reactions>(
+    post.reactions || { counts: {}, user_reacted: null }
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -642,38 +654,8 @@ function PostItem({
     // Sync state if prop updates
     setEditContent(post.content);
     setEditAttachmentIds((post.attachments || []).map((a) => a.id));
-    setLikesCount(post.likes_count || 0);
+    setPostReactions(post.reactions || { counts: {}, user_reacted: null });
   }, [post]);
-
-  useEffect(() => {
-    const fetchLikeStatus = async () => {
-      try {
-        const res = await api.get<{ liked: boolean }>(
-          `/api/posts/${post.id}/like`
-        );
-        setLiked(res.data.liked);
-      } catch {
-        setLiked(post.is_liked || false);
-      }
-    };
-    fetchLikeStatus();
-  }, [post.id, post.is_liked]);
-
-  const handleLike = async () => {
-    try {
-      if (liked) {
-        await api.delete(`/api/posts/${post.id}/like`);
-        setLiked(false);
-        setLikesCount((p) => p - 1);
-      } else {
-        await api.post(`/api/posts/${post.id}/like`);
-        setLiked(true);
-        setLikesCount((p) => p + 1);
-      }
-    } catch {
-      toast.error("Gagal memproses like post");
-    }
-  };
 
   const handleSave = async () => {
     if (!editContent.trim()) {
@@ -710,7 +692,7 @@ function PostItem({
   };
 
   return (
-    <Card 
+    <Card
       className={`
         ${isIndented ? "ml-6 sm:ml-8 border-l-2 border-primary/30" : ""}
       `}
@@ -721,7 +703,7 @@ function PostItem({
           <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
             <CornerDownRight className="h-3 w-3 shrink-0 text-primary/60" />
             <span>membalas</span>
-            <Link 
+            <Link
               href={`/users/${parentPost.author.username}`}
               className="font-medium text-foreground hover:text-primary hover:underline"
             >
@@ -738,12 +720,14 @@ function PostItem({
             <Link href={`/users/${post.author.username}`}>
               <Avatar className="h-8 w-8 hover:ring-2 hover:ring-primary/50 transition-all">
                 <AvatarImage src={post.author.avatar_url} />
-                <AvatarFallback>{post.author.username[0].toUpperCase()}</AvatarFallback>
+                <AvatarFallback>
+                  {post.author.username[0].toUpperCase()}
+                </AvatarFallback>
               </Avatar>
             </Link>
             <div className="flex-1 space-y-2">
               <div className="flex items-center gap-2">
-                <Link 
+                <Link
                   href={`/users/${post.author.username}`}
                   className="font-medium text-sm hover:text-primary hover:underline transition-colors"
                 >
@@ -753,52 +737,54 @@ function PostItem({
                   {new Date(post.created_at).toLocaleDateString("id-ID")}
                 </span>
               </div>
-              
+
               {isEditing ? (
-                 <div className="space-y-4">
-                    <TiptapEditor
-                      value={editContent}
-                      onChange={setEditContent}
-                      onAttachmentUpload={(id) => setEditAttachmentIds((prev) => [...prev, id])}
-                      isLoading={isSaving}
-                    />
-                    <div className="text-xs text-muted-foreground text-right">
-                        {editContent.replace(/<[^>]*>/g, "").length}/5000
-                      </div>
-                    <div className="flex gap-2">
-                        <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Simpan
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)} disabled={isSaving}>
-                            Batal
-                        </Button>
-                    </div>
+                <div className="space-y-4">
+                  <TiptapEditor
+                    value={editContent}
+                    onChange={setEditContent}
+                    onAttachmentUpload={(id) =>
+                      setEditAttachmentIds((prev) => [...prev, id])
+                    }
+                    isLoading={isSaving}
+                  />
+                  <div className="text-xs text-muted-foreground text-right">
+                    {editContent.replace(/<[^>]*>/g, "").length}/5000
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                      {isSaving && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Simpan
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setIsEditing(false)}
+                      disabled={isSaving}
+                    >
+                      Batal
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <>
                   <div className="text-sm mt-1">
                     <RichTextDisplay content={post.content} />
                   </div>
-                  {/* Post Actions (Like, Reply) */}
-                  <div className="flex items-center gap-2 mt-3">
+                  {/* Post Actions (Reactions, Reply) */}
+                  <div className="flex flex-col gap-2 mt-3">
+                    <ReactionBar
+                      referenceId={post.id}
+                      referenceType="post"
+                      reactions={postReactions}
+                      onReactionsChange={setPostReactions}
+                    />
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`h-7 px-2 gap-1.5 ${
-                        liked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
-                      }`}
-                      onClick={handleLike}
-                    >
-                      <Heart
-                        className={`h-3 w-3 ${liked ? "fill-current" : ""}`}
-                      />
-                      <span className="text-xs">{likesCount}</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary"
+                      className="h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary w-fit"
                       onClick={() => onReply(post)}
                     >
                       <Reply className="h-3 w-3" />
@@ -809,30 +795,31 @@ function PostItem({
               )}
             </div>
           </div>
-          {!isEditing && (post.author.username === currentUser?.username || isAdmin) && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreVertical className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                 {post.author.username === currentUser?.username && (
+          {!isEditing &&
+            (post.author.username === currentUser?.username || isAdmin) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <MoreVertical className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {post.author.username === currentUser?.username && (
                     <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Edit
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit
                     </DropdownMenuItem>
-                 )}
-                <DropdownMenuItem
-                  onClick={() => onDelete(post.id)}
-                  className="text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Hapus
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  )}
+                  <DropdownMenuItem
+                    onClick={() => onDelete(post.id)}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Hapus
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
         </div>
       </CardContent>
     </Card>

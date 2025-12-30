@@ -15,7 +15,6 @@ import {
   MessageSquare,
   BookOpen,
   Eye,
-  Heart,
   Loader2,
   ArrowLeft,
   Clock,
@@ -109,10 +108,6 @@ function ThreadCard({ thread }: { thread: MeilisearchThread }) {
                 <Eye className="h-3 w-3" />
                 {thread.views}
               </div>
-              <div className="flex items-center gap-1">
-                <Heart className="h-3 w-3" />
-                {thread.likes_count || 0}
-              </div>
             </div>
           </div>
         </CardContent>
@@ -159,10 +154,6 @@ function PostCard({ post }: { post: MeilisearchPost }) {
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {formatDate(post.created_at)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Heart className="h-3 w-3" />
-                  {post.likes_count || 0}
                 </span>
               </div>
             </div>
@@ -223,7 +214,8 @@ function SearchContent() {
   const totalResults = (threads?.total || 0) + (posts?.estimatedTotalHits || 0);
 
   const canLoadMoreThreads = threads && threads.results.length < threads.total;
-  const canLoadMorePosts = posts && posts.hits.length < posts.estimatedTotalHits;
+  const canLoadMorePosts =
+    posts && posts.hits.length < posts.estimatedTotalHits;
 
   return (
     <div className="space-y-6">
