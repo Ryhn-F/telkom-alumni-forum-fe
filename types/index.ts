@@ -25,7 +25,7 @@ export interface Profile {
   user_id: string;
   full_name: string;
   identity_number?: string;
-  class_grade?: string;
+  angkatan?: string;
   bio?: string;
   created_at: string;
 }
@@ -175,7 +175,7 @@ export interface CreateUserRequest {
   role: "admin" | "guru" | "siswa";
   full_name: string;
   identity_number?: string;
-  class_grade?: string;
+  angkatan?: string;
   bio?: string;
   avatar?: File;
 }
@@ -187,7 +187,7 @@ export interface UpdateUserRequest {
   role?: "admin" | "guru" | "siswa";
   full_name?: string;
   identity_number?: string;
-  class_grade?: string;
+  angkatan?: string;
   bio?: string;
   avatar?: File;
 }
@@ -216,7 +216,7 @@ export interface PublicProfile {
   role: string;
   avatar_url?: string;
   created_at: string;
-  class_grade?: string;
+  angkatan?: string;
   bio?: string;
 }
 
@@ -391,7 +391,7 @@ export interface PublicProfile {
   role: string;
   avatar_url?: string;
   created_at: string;
-  class_grade?: string;
+  angkatan?: string;
   bio?: string;
   gamification_status?: GamificationStatus;
 }

@@ -242,9 +242,9 @@ export default function UserProfilePage() {
               <h2 className="text-2xl font-bold">{profile.username}</h2>
               <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
                 <RoleBadgeComponent role={profile.role} />
-                {profile.class_grade && (
+                {profile.angkatan && (
                   <Badge variant="outline" className="gap-1">
-                    Kelas {profile.class_grade}
+                    Angkatan {profile.angkatan}
                   </Badge>
                 )}
               </div>

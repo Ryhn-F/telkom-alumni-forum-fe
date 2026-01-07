@@ -112,8 +112,8 @@ export default function ProfilePage() {
                   <GraduationCap className="h-3 w-3" />
                   {role && getRoleDisplayName(role.name)}
                 </Badge>
-                {profile?.class_grade && (
-                  <Badge variant="outline">Kelas {profile.class_grade}</Badge>
+                {profile?.angkatan && (
+                  <Badge variant="outline">Angkatan {profile.angkatan}</Badge>
                 )}
               </div>
               {profile?.bio && (

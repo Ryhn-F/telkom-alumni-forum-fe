@@ -48,7 +48,7 @@ type UserFormData = {
   role: "admin" | "guru" | "siswa";
   full_name: string;
   identity_number: string;
-  class_grade: string;
+  angkatan: string;
   bio: string;
 };
 const initialFormData: UserFormData = {
@@ -58,7 +58,7 @@ const initialFormData: UserFormData = {
   role: "siswa",
   full_name: "",
   identity_number: "",
-  class_grade: "",
+  angkatan: "",
   bio: "",
 };
 
@@ -160,7 +160,7 @@ export default function UsersPage() {
       role: user.role.name as "admin" | "guru" | "siswa",
       full_name: user.profile.full_name,
       identity_number: user.profile.identity_number || "",
-      class_grade: user.profile.class_grade || "",
+      angkatan: user.profile.angkatan || "",
       bio: user.profile.bio || "",
     });
     setIsEditOpen(true);
@@ -298,12 +298,12 @@ export default function UsersPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="class_grade">Kelas</Label>
+                  <Label htmlFor="angkatan">Angkatan</Label>
                   <Input
-                    id="class_grade"
-                    value={formData.class_grade}
+                    id="angkatan"
+                    value={formData.angkatan}
                     onChange={(e) =>
-                      setFormData({ ...formData, class_grade: e.target.value })
+                      setFormData({ ...formData, angkatan: e.target.value })
                     }
                   />
                 </div>
@@ -360,7 +360,7 @@ export default function UsersPage() {
                 <TableRow>
                   <TableHead>Pengguna</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead className="hidden md:table-cell">Kelas</TableHead>
+                  <TableHead className="hidden md:table-cell">Angkatan</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -401,7 +401,7 @@ export default function UsersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {u.profile.class_grade || "-"}
+                      {u.profile.angkatan || "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -520,12 +520,12 @@ export default function UsersPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-class_grade">Kelas</Label>
+                <Label htmlFor="edit-angkatan">Angkatan</Label>
                 <Input
-                  id="edit-class_grade"
-                  value={formData.class_grade}
+                  id="edit-angkatan"
+                  value={formData.angkatan}
                   onChange={(e) =>
-                    setFormData({ ...formData, class_grade: e.target.value })
+                    setFormData({ ...formData, angkatan: e.target.value })
                   }
                 />
               </div>
