@@ -476,7 +476,34 @@ export default function ThreadDetailPage() {
       <Separator />
 
       {/* Reply Form */}
-      <Card id="reply-form">
+      {!user ? (
+        <Card
+          id="reply-form"
+          className="bg-gradient-to-br from-red-50/40 via-background to-muted/30 border-dashed border-red-200 dark:border-red-900/30"
+        >
+          <CardContent className="py-8 text-center space-y-3">
+            <h3 className="font-semibold text-lg text-foreground">
+              Ingin ikut membalas atau berdiskusi?
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Silakan masuk ke akun Anda atau daftar akun baru untuk memberikan tanggapan dan membalas diskusi ini.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <Link
+                href={`/login?redirect=${encodeURIComponent(
+                  `/threads/${slug}`
+                )}`}
+              >
+                <Button className="font-semibold">Masuk ke Akun</Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="outline">Daftar Akun Baru</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card id="reply-form">
         <CardContent className="pt-4">
           {/* Show who we're replying to */}
           {replyToPost && (
@@ -553,6 +580,7 @@ export default function ThreadDetailPage() {
           </form>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

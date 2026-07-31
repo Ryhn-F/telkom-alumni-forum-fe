@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { login, getGoogleLoginUrl } from "@/lib/auth";
 import { useAuthStore } from "@/stores";
 import { Button } from "@/components/ui/button";
@@ -10,12 +11,10 @@ import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, ArrowRight } from "lucide-react";
 
 // Google Icon Component
 function GoogleIcon({ className }: { className?: string }) {
@@ -85,114 +84,142 @@ function LoginForm() {
   const displayError = urlError || error;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-2xl font-bold">
-            Telkom<span className="text-primary">Forum</span>
-          </CardTitle>
-          <CardDescription>
-            Masuk ke akun Anda untuk melanjutkan
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Google Login Button */}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-12 relative group hover:border-primary/50 transition-all duration-200"
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-          >
-            <GoogleIcon className="w-5 h-5 mr-3" />
-            <span className="font-medium">Masuk dengan Google</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-red-500/5 to-yellow-500/5 opacity-0 group-hover:opacity-100 rounded-md transition-opacity duration-200" />
-          </Button>
+    <div className="h-screen w-full bg-[#dc2626] flex flex-col justify-between overflow-hidden select-none relative">
+      {/* Main Container Grid */}
+      <div className="flex-1 w-full pl-4 md:pl-8 lg:pl-16 pr-0 grid grid-cols-1 lg:grid-cols-12 items-end pt-6 md:pt-10">
+        
+        {/* Left Side: Standalone Card centered vertically */}
+        <div className="lg:col-span-5 xl:col-span-4 flex justify-center lg:justify-start self-center pb-8 md:pb-12 z-10 pr-4">
+          <Card className="w-full max-w-md shadow-2xl bg-white text-slate-900 border-0 rounded-none p-2 sm:p-4">
+            <CardHeader className="text-center pb-2">
+              <Link href="/" className="inline-flex items-center justify-center">
+                <span className="font-extrabold text-2xl tracking-tight text-slate-900">
+                  <span className="text-red-600">Telkom</span>Forum
+                </span>
+              </Link>
+            </CardHeader>
 
-          {/* Info Badge for Students */}
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-            <AlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
-            <p className="text-xs text-muted-foreground">
-              Siswa dapat login menggunakan email <span className="font-medium text-foreground">@student.smktelkom-jkt.sch.id</span>
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                Atau dengan email yang sudah terdaftar
-              </span>
-            </div>
-          </div>
-
-          {/* Email/Password Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+            <CardContent className="space-y-5">
+              {/* Google OAuth Login Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11 border-slate-200 hover:border-red-500 hover:bg-red-50/50 text-slate-700 font-semibold rounded-none transition-all duration-200 shadow-xs gap-2"
+                onClick={handleGoogleLogin}
                 disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            {displayError && (
-              <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>{displayError}</span>
+              >
+                <GoogleIcon className="w-5 h-5" />
+                <span>Masuk dengan Google</span>
+              </Button>
+
+              {/* Divider */}
+              <div className="relative my-3">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-[11px] uppercase tracking-wider">
+                  <span className="bg-white px-3 text-slate-400 font-bold">
+                    Atau dengan Email
+                  </span>
+                </div>
               </div>
-            )}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Memproses...
-                </>
-              ) : (
-                "Masuk"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+
+              {/* Email/Password Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-xs font-bold text-slate-700">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="email@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="h-10 rounded-none border-slate-200 focus:border-red-600 focus:ring-red-600 text-slate-900 bg-slate-50/50"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-xs font-bold text-slate-700">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="h-10 rounded-none border-slate-200 focus:border-red-600 focus:ring-red-600 text-slate-900 bg-slate-50/50"
+                  />
+                </div>
+
+                {displayError && (
+                  <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 p-3 rounded-none border border-red-200">
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-600" />
+                    <span>{displayError}</span>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-bold rounded-none shadow-md transition-all gap-2"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Memproses...
+                    </>
+                  ) : (
+                    <>
+                      <span>Masuk</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              {/* Footer Link */}
+              <div className="text-center pt-3 border-t border-slate-100 text-xs text-slate-500">
+                Belum punya akun?{" "}
+                <Link href="/register" className="font-bold text-red-600 hover:underline">
+                  Daftar Sekarang
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Side: Artwork aligned flush to the bottom and right viewport edges */}
+        <div className="hidden lg:flex lg:col-span-7 xl:col-span-8 justify-end items-end self-end pr-0 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/login-art.png"
+            alt="Telkom Alumni Artwork"
+            className="max-h-[92vh] w-auto object-contain object-right-bottom block mr-0 select-none pointer-events-none"
+          />
+        </div>
+
+      </div>
     </div>
   );
 }
 
 function LoginLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center space-y-2">
-          <Skeleton className="mx-auto w-16 h-16 rounded-full" />
-          <Skeleton className="h-8 w-48 mx-auto" />
-          <Skeleton className="h-4 w-64 mx-auto" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </CardContent>
+    <div className="h-screen w-full flex items-center justify-center bg-[#dc2626] p-4">
+      <Card className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-4">
+        <Skeleton className="mx-auto w-12 h-12 rounded-xl" />
+        <Skeleton className="h-8 w-48 mx-auto" />
+        <Skeleton className="h-4 w-64 mx-auto" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-10 w-full rounded-xl" />
+        <Skeleton className="h-10 w-full rounded-xl" />
       </Card>
     </div>
   );
@@ -205,4 +232,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

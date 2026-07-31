@@ -26,12 +26,23 @@ import { ArrowLeft, Loader2, Send } from "lucide-react";
 import type { Category, CategoryListResponse, MessageResponse } from "@/types";
 import { TiptapEditor } from "@/components/TiptapEditor";
 import { useAuthStore } from "@/stores/auth-store";
+import { getToken } from "@/lib/cookies";
+import { Lock, LogIn, UserPlus } from "lucide-react";
+import Link from "next/link";
 
 export default function NewThreadPage() {
   const router = useRouter();
   const { role } = useAuthStore();
+  const [isGuest, setIsGuest] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!getToken()) {
+      setIsGuest(true);
+      return;
+    }
+  }, []);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -80,6 +91,36 @@ export default function NewThreadPage() {
       setLoading(false);
     }
   };
+
+  if (isGuest) {
+    return (
+      <div className="max-w-md mx-auto py-12 text-center space-y-6">
+        <div className="h-16 w-16 bg-red-100 dark:bg-red-950/50 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+          <Lock className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight">Autentikasi Diperlukan</h1>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Anda perlu masuk ke akun terlebih dahulu sebelum dapat membuat atau mempublikasikan diskusi baru.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <Link href="/login?redirect=/threads/new" className="flex-1">
+            <Button className="w-full gap-2 font-semibold shadow-sm">
+              <LogIn className="h-4 w-4" />
+              Masuk Sekarang
+            </Button>
+          </Link>
+          <Link href="/register" className="flex-1">
+            <Button variant="outline" className="w-full gap-2 font-semibold">
+              <UserPlus className="h-4 w-4" />
+              Daftar Akun
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

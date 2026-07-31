@@ -63,6 +63,10 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   socket: null,
 
   fetchNotifications: async (limit = 20, offset = 0) => {
+    if (!getToken()) {
+      set({ notifications: [], isLoading: false });
+      return;
+    }
     set({ isLoading: true, error: null });
     try {
       const response = await api.get<NotificationListResponse>(
@@ -76,6 +80,10 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   },
 
   fetchUnreadCount: async () => {
+    if (!getToken()) {
+      set({ unreadCount: 0 });
+      return;
+    }
     try {
       const response = await api.get<NotificationUnreadCountResponse>(
         "/api/notifications/unread-count"

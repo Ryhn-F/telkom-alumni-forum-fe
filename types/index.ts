@@ -96,6 +96,8 @@ export interface Thread {
   content: string;
   audience: "semua" | "guru" | "siswa";
   views: number;
+  reply_count?: number;
+  image_url?: string | null;
   author: Author;
   reactions?: {
     counts: { [emoji: string]: number };

@@ -38,6 +38,9 @@ import {
   ChevronRight,
   Info,
   Github,
+  Pin,
+  Sparkles,
+  StickyNote,
 } from "lucide-react";
 import type {
   Menfess,
@@ -354,32 +357,32 @@ export default function MenfessPage() {
       </Card>
 
       {/* Post Form */}
-      <Card>
+      <Card className="border-red-100 dark:border-red-900/30 shadow-sm bg-gradient-to-br from-background via-background to-red-50/20 dark:to-red-950/10">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5" />
-            Kirim Menfess Anonim
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <StickyNote className="h-5 w-5 text-red-600" />
+            Tempel Pesan Rahasia di Papan
           </CardTitle>
           <CardDescription>
-            Pesan Anda akan dikirim tanpa identitas. Maksimal 2 pesan per hari.
+            Tulis ungkapan, saran, atau curhatmu secara anonim. Identitasmu dijamin 100% aman & terenkripsi.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Textarea
-                placeholder="Tulis di sini... Identitasmu aman 🔒"
+                placeholder="Tulis pesan rahasiamu di sini... (Contoh: Semangat buat angkatan 2026 yang lagi TA! 🚀)"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 maxLength={MENFESS_CONTENT_MAX}
                 disabled={submitting}
-                rows={4}
-                className="resize-none"
+                rows={3}
+                className="resize-none border-dashed focus:border-solid text-sm"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Info className="h-3 w-3" />
-                  Pesan akan dikirim secara anonim
+                  <Lock className="h-3 w-3 text-red-500" />
+                  Pesan dikirim 100% anonim
                 </span>
                 <span>
                   {content.length}/{MENFESS_CONTENT_MAX}
@@ -389,125 +392,145 @@ export default function MenfessPage() {
             <Button
               type="submit"
               disabled={submitting || !content.trim()}
-              className="gap-2"
+              className="gap-2 font-semibold shadow-sm"
             >
               {submitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              Kirim Anonim
+              Tempel Pesan Rahasia
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      {/* Menfess List */}
+      {/* Menfess Whiteboard Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Menfess Terbaru ({total})</h2>
+          <div className="flex items-center gap-2">
+            <Pin className="h-4 w-4 text-red-600" />
+            <h2 className="text-lg font-semibold tracking-tight">Papan Sticky Notes ({total})</h2>
+          </div>
           {totalPages > 1 && (
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               Halaman {page} dari {totalPages}
             </span>
           )}
         </div>
 
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Card key={i}>
-                <CardContent className="pt-4">
-                  <Skeleton className="h-20 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : menfessList.length > 0 ? (
-          <>
-            <div className="space-y-4">
-              {menfessList.map((menfess) => (
-                <Card
-                  key={menfess.id}
-                  className="hover-lift border-border/50 hover:border-border"
-                >
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-muted rounded-full">
-                        <Lock className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="secondary" className="text-xs">
-                            Anonim
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(menfess.created_at).toLocaleDateString(
-                              "id-ID",
-                              {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              }
-                            )}
-                          </span>
-                        </div>
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90 mb-3">
-                          {menfess.content}
-                        </p>
-                        <ReactionBar
-                          referenceId={menfess.id}
-                          referenceType="menfess"
-                          reactions={
-                            menfess.reactions || {
-                              counts: {},
-                              user_reacted: null,
-                            }
-                          }
-                          onReactionsChange={(newReactions) =>
-                            handleReactionsChange(menfess.id, newReactions)
-                          }
-                        />
-                      </div>
-                    </div>
+        {/* Whiteboard Surface */}
+        <div className="p-4 md:p-6 rounded-3xl bg-gradient-to-b from-stone-100/80 via-zinc-50 to-stone-100/60 dark:from-zinc-950 dark:via-stone-900/40 dark:to-zinc-950 border border-dashed border-red-200/80 dark:border-red-900/40 shadow-inner min-h-[350px]">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className="h-36 rounded-2xl">
+                  <CardContent className="pt-6">
+                    <Skeleton className="h-20 w-full" />
                   </CardContent>
                 </Card>
               ))}
             </div>
+          ) : menfessList.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {menfessList.map((menfess, index) => {
+                  const noteTones = [
+                    "bg-rose-50/90 dark:bg-rose-950/30 border-rose-200/80 dark:border-rose-900/40 rotate-[-1deg]",
+                    "bg-red-50/90 dark:bg-red-950/30 border-red-200/80 dark:border-red-900/40 rotate-[1deg]",
+                    "bg-amber-50/90 dark:bg-amber-950/25 border-amber-200/80 dark:border-amber-900/30 rotate-[-0.5deg]",
+                    "bg-stone-50/90 dark:bg-zinc-900/40 border-stone-200/80 dark:border-zinc-800 rotate-[0.8deg]",
+                  ];
+                  const toneClass = noteTones[index % noteTones.length];
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1 || loading}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Halaman {page} dari {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages || loading}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                  return (
+                    <div key={menfess.id} className="relative group pt-3">
+                      {/* Pushpin Badge */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold shadow-md flex items-center gap-1 z-10 tracking-wider uppercase">
+                        <Pin className="h-3 w-3" /> PESAN
+                      </div>
+
+                      <Card
+                        className={`relative overflow-hidden transition-all duration-300 hover:rotate-0 hover:scale-[1.02] hover:shadow-xl shadow-sm border rounded-2xl ${toneClass}`}
+                      >
+                        <CardContent className="pt-5 pb-4 px-5 space-y-3">
+                          <div className="flex items-center justify-between text-xs text-muted-foreground/80 border-b border-border/30 pb-2">
+                            <span className="inline-flex items-center gap-1 font-semibold text-red-600 dark:text-red-400">
+                              <Lock className="h-3 w-3" /> Anonim
+                            </span>
+                            <span className="text-[11px]">
+                              {new Date(menfess.created_at).toLocaleDateString(
+                                "id-ID",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )}
+                            </span>
+                          </div>
+
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90 font-sans min-h-[60px]">
+                            "{menfess.content}"
+                          </p>
+
+                          <div className="pt-2 border-t border-border/30">
+                            <ReactionBar
+                              referenceId={menfess.id}
+                              referenceType="menfess"
+                              reactions={
+                                menfess.reactions || {
+                                  counts: {},
+                                  user_reacted: null,
+                                }
+                              }
+                              onReactionsChange={(newReactions) =>
+                                handleReactionsChange(menfess.id, newReactions)
+                              }
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  );
+                })}
               </div>
-            )}
-          </>
-        ) : (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              <Lock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Belum ada menfess. Jadilah yang pertama!</p>
-            </CardContent>
-          </Card>
-        )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1 || loading}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Halaman {page} dari {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages || loading}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="py-12 text-center text-muted-foreground space-y-3">
+              <StickyNote className="h-12 w-12 mx-auto text-red-400/60" />
+              <h3 className="font-semibold text-base">Papan Menfess Masih Kosong</h3>
+              <p className="text-xs max-w-sm mx-auto text-muted-foreground/80">
+                Belum ada pesan rahasia yang ditempel. Tempelkan pesan pertama Anda sekarang!
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

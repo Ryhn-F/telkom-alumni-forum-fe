@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/axios";
 import { useAuthStore } from "@/stores";
+import { getToken } from "@/lib/cookies";
 import { getRoleDisplayName } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,17 +15,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import {
-  MessageSquare,
   Users,
   TrendingUp,
   Plus,
   ArrowRight,
   Eye,
+  Sparkles,
 } from "lucide-react";
 import { LeaderboardPreview } from "@/components/LeaderboardPreview";
-import type { Thread, ThreadListResponse } from "@/types";
+import { GuestBanner } from "@/components/GuestBanner";
+import { ThreadFeedCard } from "@/components/ThreadFeedCard";
+import type { Thread, ThreadListResponse, Reactions } from "@/types";
 
 export default function HomePage() {
   const { profile, role } = useAuthStore();
@@ -37,7 +39,7 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [recentRes, trendingRes, userCountRes] = await Promise.all([
-          api.get<ThreadListResponse>("/api/threads", { params: { page: 1, limit: 5 } }),
+          api.get<ThreadListResponse>("/api/threads", { params: { page: 1, limit: 10 } }),
           api.get<{ data: Thread[] }>("/api/threads/trending", {
             params: { limit: 5 },
           }),
@@ -55,51 +57,69 @@ export default function HomePage() {
     fetchData();
   }, []);
 
+  // Restore scroll position when returning back from thread detail
+  useEffect(() => {
+    if (!loading && recentThreads.length > 0) {
+      const savedScroll = sessionStorage.getItem("feed_scroll_position");
+      if (savedScroll) {
+        setTimeout(() => {
+          window.scrollTo({ top: parseInt(savedScroll, 10), behavior: "instant" });
+          sessionStorage.removeItem("feed_scroll_position");
+        }, 50);
+      }
+    }
+  }, [loading, recentThreads]);
+
+  const handleReactionsChange = (threadId: string, newReactions: Reactions) => {
+    setRecentThreads((prev) =>
+      prev.map((t) => (t.id === threadId ? { ...t, reactions: newReactions } : t))
+    );
+  };
+
   return (
     <div className="space-y-8">
-      {/* Hero Section with better visual appeal */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-6 md:p-8 border border-primary/10">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-        <div className="relative z-10">
-          <h1 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight">
+      <GuestBanner />
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500/10 via-red-500/5 to-background p-6 md:p-8 border border-red-500/15">
+        <div className="relative z-10 space-y-3">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             Selamat datang, {profile?.full_name?.split(" ")[0] || "Alumni"}! 👋
           </h1>
-          <p className="text-muted-foreground mb-4 leading-relaxed">
-            {role && `Anda masuk sebagai ${getRoleDisplayName(role.name)}. `}Apa
-            yang ingin Anda diskusikan hari ini?
+          <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
+            {role && `Anda masuk sebagai ${getRoleDisplayName(role.name)}. `}Apa yang ingin Anda diskusikan dengan komunitas Telkom hari ini?
           </p>
-          <p className="text-sm text-muted-foreground/70 mb-5">
-            report bug wa: +62 878-6107-6088
-          </p>
-          <Link href="/threads/new">
-            <Button className="gap-2 hover:scale-105 transition-transform shadow-md">
-              <Plus className="h-4 w-4" />
-              Mulai Diskusi Baru
-            </Button>
-          </Link>
+          <div className="pt-2">
+            <Link href={getToken() ? "/threads/new" : "/login?redirect=/threads/new"}>
+              <Button className="gap-2 hover:scale-105 transition-transform shadow-md font-semibold">
+                <Plus className="h-4 w-4" />
+                Mulai Diskusi Baru
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Stats Cards with hover effects */}
+      {/* Quick Stats Grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="hover-lift">
+        <Card className="hover-lift border-border/60">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Anggota Aktif</CardTitle>
-            <Users className="h-4 w-4 text-primary/70" />
+            <CardTitle className="text-sm font-medium">Anggota Komunitas</CardTitle>
+            <Users className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {loading ? <Skeleton className="h-8 w-16" /> : userCount}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Guru dan siswa terdaftar
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Guru, Siswa, & Alumni terdaftar
             </p>
           </CardContent>
         </Card>
-        <Card className="hover-lift">
+        <Card className="hover-lift border-border/60">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trending</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary/70" />
+            <CardTitle className="text-sm font-medium">Topik Trending</CardTitle>
+            <TrendingUp className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -109,132 +129,62 @@ export default function HomePage() {
                 trendingThreads[0]?.views || 0
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Views pada diskusi viral
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Views pada diskusi paling hangat
             </p>
           </CardContent>
         </Card>
       </section>
 
-      {/* Leaderboard Preview Section */}
+      {/* Leaderboard Preview */}
       <section>
         <LeaderboardPreview />
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Diskusi Terbaru</CardTitle>
-              <CardDescription>Diskusi yang baru saja dibuat</CardDescription>
-            </div>
-            <Link href="/threads">
-              <Button variant="ghost" size="sm" className="gap-1">
-                Lihat Semua
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : recentThreads.length > 0 ? (
-              <div className="space-y-4">
-                {recentThreads.map((thread) => (
-                  <Link key={thread.id} href={`/threads/${thread.slug}`}>
-                    <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-all hover:translate-x-1 cursor-pointer">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm line-clamp-1 mb-1">
-                          {thread.title}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {thread.category_name}
-                          </Badge>
-                          <span
-                            className="text-xs text-muted-foreground hover:text-primary hover:underline cursor-pointer transition-colors"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              window.location.href = `/users/${thread.author.username}`;
-                            }}
-                          >
-                            oleh {thread.author.username}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Eye className="h-3 w-3 mr-1" />
-                        {thread.views}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Belum ada diskusi. Jadilah yang pertama!
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Sedang Trending</CardTitle>
-              <CardDescription>Diskusi terhangat saat ini</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : trendingThreads.length > 0 ? (
-              <div className="space-y-4">
-                {trendingThreads.map((thread, index) => (
-                  <Link key={thread.id} href={`/threads/${thread.slug}`}>
-                    <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-all hover:translate-x-1 cursor-pointer">
-                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm line-clamp-1 mb-1">
-                          {thread.title}
-                        </h4>
-                        <span
-                          className="text-xs text-muted-foreground hover:text-primary hover:underline cursor-pointer transition-colors"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            window.location.href = `/users/${thread.author.username}`;
-                          }}
-                        >
-                          {thread.author.username}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Eye className="h-3 w-3 mr-1" />
-                        {thread.views}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Belum ada diskusi trending.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* X/Twitter Style Main Social Feed */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-border/40 pb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <h2 className="text-xl font-bold tracking-tight">Feed Diskusi Terbaru</h2>
+          </div>
+          <Link href="/threads">
+            <Button variant="ghost" size="sm" className="gap-1 font-medium text-xs text-red-600 hover:text-red-700">
+              Lihat Semua
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </div>
+
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="rounded-2xl p-4">
+              <CardContent className="pt-2 space-y-3">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-16 w-full" />
+              </CardContent>
+            </Card>
+          ))
+        ) : recentThreads.length > 0 ? (
+          <div className="space-y-4">
+            {recentThreads.map((thread) => (
+              <ThreadFeedCard
+                key={thread.id}
+                thread={thread}
+                onReactionsChange={(newReactions) =>
+                  handleReactionsChange(thread.id, newReactions)
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <Card className="rounded-2xl">
+            <CardContent className="py-8 text-center text-muted-foreground">
+              Belum ada diskusi terbaru.
+            </CardContent>
+          </Card>
+        )}
+      </section>
     </div>
   );
 }

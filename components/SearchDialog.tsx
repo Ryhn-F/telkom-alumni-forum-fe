@@ -324,24 +324,30 @@ export function SearchTrigger() {
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 md:hidden"
+        className="h-9 w-9 md:hidden rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
         onClick={() => setIsOpen(true)}
       >
         <Search className="h-4 w-4" />
       </Button>
-      {/* Desktop: Full search bar */}
-      <Button
-        variant="outline"
-        className="relative h-10 hidden md:flex justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64"
+
+      {/* Desktop: Glowing Wide Search Bar */}
+      <button
+        type="button"
         onClick={() => setIsOpen(true)}
+        className="relative h-10 hidden md:flex items-center justify-start text-sm text-muted-foreground bg-background/90 backdrop-blur border border-red-500/30 dark:border-red-600/40 rounded-xl px-3.5 shadow-[0_0_12px_rgba(239,68,68,0.15)] hover:shadow-[0_0_22px_rgba(239,68,68,0.35)] hover:border-red-500/70 transition-all duration-300 w-64 lg:w-[460px] group cursor-pointer"
       >
-        <Search className="mr-2 h-4 w-4" />
-        <span className="hidden lg:inline-flex">Cari diskusi...</span>
-        <span className="inline-flex lg:hidden">Cari...</span>
-        <kbd className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 hidden h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-          <span className="text-xs">⌘</span>K
+        <Search className="mr-2.5 h-4 w-4 text-red-500 group-hover:scale-110 transition-transform duration-200" />
+        <span className="hidden lg:inline-flex text-muted-foreground/90 font-medium">
+          Cari topik, pertanyaan, atau alumni...
+        </span>
+        <span className="inline-flex lg:hidden text-muted-foreground/90 font-medium">
+          Cari diskusi...
+        </span>
+        <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden h-6 select-none items-center gap-1 rounded-md border border-red-500/20 bg-red-500/10 px-2 font-mono text-[10px] font-bold text-red-600 dark:text-red-400 sm:flex">
+          <span>⌘</span>K
         </kbd>
-      </Button>
+      </button>
+
       <SearchDialog isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
   );

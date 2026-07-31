@@ -12,6 +12,7 @@ import { Plus } from "lucide-react";
 import { api } from "@/lib/axios";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getToken } from "@/lib/cookies";
 import type { Reactions, ToggleReactionRequest } from "@/types/reactions";
 
 interface ReactionBarProps {
@@ -43,6 +44,20 @@ export function ReactionBar({
   const toggleReaction = useCallback(
     async (newEmoji: string) => {
       if (isPending) return;
+
+      if (!getToken()) {
+        toast.info("Silakan masuk terlebih dahulu untuk memberikan reaksi", {
+          action: {
+            label: "Masuk",
+            onClick: () => {
+              window.location.href = `/login?redirect=${encodeURIComponent(
+                window.location.pathname
+              )}`;
+            },
+          },
+        });
+        return;
+      }
 
       const previousReactions = {
         ...localReactions,

@@ -25,6 +25,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { getToken } from "@/lib/cookies";
 import { useNotificationStore } from "@/stores";
 import type { Notification } from "@/types";
 
@@ -56,6 +57,8 @@ export function NotificationDropdown() {
 
   // Initialize WebSocket connection and fetch initial data
   useEffect(() => {
+    if (!getToken()) return;
+
     connectWebSocket();
     fetchUnreadCount();
     fetchNotifications();

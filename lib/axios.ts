@@ -32,9 +32,23 @@ apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
+      const hadToken = !!getToken();
       clearAuthCookies();
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
+      if (typeof window !== "undefined" && hadToken) {
+        const currentPath = window.location.pathname;
+        const protectedPaths = [
+          "/threads/create",
+          "/admin",
+          "/settings",
+          "/notifications",
+          "/menfess",
+          "/profile/edit",
+        ];
+        if (protectedPaths.some((p) => currentPath.startsWith(p))) {
+          window.location.href = `/login?redirect=${encodeURIComponent(
+            currentPath
+          )}`;
+        }
       }
     }
     return Promise.reject(error);

@@ -6,8 +6,10 @@ import { useTheme } from "next-themes";
 import { logout } from "@/lib/auth";
 import { useAuthStore } from "@/stores";
 import { getRoleDisplayName } from "@/lib/auth";
+import { getToken } from "@/lib/cookies";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,16 +27,21 @@ import {
   Moon,
   Plus,
   Settings,
-  EyeOff,
+  StickyNote,
+  Trophy,
+  Sparkles,
+  Shield,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { SearchTrigger } from "@/components/SearchDialog";
 
-
-const navigation = [
+const sidebarNav = [
   { name: "Beranda", href: "/", icon: Home },
   { name: "Diskusi", href: "/threads", icon: MessageSquare },
+  { name: "Papan Menfess", href: "/menfess", icon: StickyNote, badge: "ANONIM", requiresStudent: true },
+  { name: "Papan Klasemen", href: "/leaderboard", icon: Trophy },
 ];
 
 export default function UserLayout({
@@ -47,260 +54,293 @@ export default function UserLayout({
   const { user, role, profile } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="font-semibold text-lg">
-               <span className="text-primary">Telkom</span>Forum 
+    <div className="min-h-screen bg-background overflow-x-clip">
+      {/* Top Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="flex h-16 items-center justify-between gap-4">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-2 shrink-0">
+              <span className="font-bold text-lg tracking-tight hidden sm:inline-block">
+                <span className="text-red-600 dark:text-red-500">Telkom</span>Forum
               </span>
             </Link>
 
-            <nav className="hidden md:flex items-center space-x-1">
-              {navigation.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(item.href));
-                return (
-                  <Link key={item.name} href={item.href}>
-                    <Button
-                      variant={isActive ? "secondary" : "ghost"}
-                      size="sm"
-                      className={cn("gap-2", isActive && "bg-secondary")}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.name}
-                    </Button>
-                  </Link>
-                );
-              })}
-              {/* Menfess - Only for siswa and admin */}
-              {role?.name !== "guru" && (
-                <Link href="/menfess">
-                  <Button
-                    variant={pathname === "/menfess" ? "secondary" : "ghost"}
-                    size="sm"
-                    className={cn("gap-2", pathname === "/menfess" && "bg-secondary")}
-                  >
-                    <EyeOff className="h-4 w-4" />
-                    Menfess
-                  </Button>
-                </Link>
-              )}
-            </nav>
-
-            <div className="flex items-center gap-1 sm:gap-2">
+            {/* Glowing Wide Search Bar */}
+            <div className="flex-1 max-w-xl flex items-center justify-center">
               <SearchTrigger />
-              <Link href="/threads/new" className="hidden sm:block">
-                <Button size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Buat Diskusi
-                </Button>
-              </Link>
+            </div>
+
+            {/* Right Quick Actions */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <NotificationDropdown />
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-9 w-9 rounded-full"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                title="Ganti Tema"
               >
-                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-slate-300" />
               </Button>
-              {/* Profile Dropdown - Desktop Only */}
-              <div className="hidden md:block">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="relative h-8 w-8 rounded-full"
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.avatar_url} />
-                        <AvatarFallback>
-                          {(profile?.full_name ||
-                            user?.username ||
-                            "U")[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+
+              {/* User Avatar / Login Button */}
+              {user ? (
+                <div className="hidden md:block">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="relative h-9 w-9 rounded-full ring-2 ring-primary/20 hover:ring-primary/40 transition-all"
+                      >
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={user?.avatar_url} />
+                          <AvatarFallback className="bg-red-50 text-red-600 font-bold">
+                            {(profile?.full_name || user?.username || "U")[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end">
+                      <DropdownMenuLabel>
+                        <p className="text-sm font-medium leading-none">
+                          {profile?.full_name || user?.username}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {user?.email}
+                        </p>
+                        <p className="text-[11px] text-red-600 font-semibold mt-0.5">
+                          {role && getRoleDisplayName(role.name)}
+                        </p>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile">
+                          <User className="mr-2 h-4 w-4" />
+                          Profil Saya
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile/edit">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Pengaturan
+                        </Link>
+                      </DropdownMenuItem>
+                      {role?.name === "admin" && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin">
+                              <Shield className="mr-2 h-4 w-4 text-red-600" />
+                              Dashboard Admin
+                            </Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => logout()}
+                        className="text-destructive font-medium"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Keluar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ) : (
+                <div className="hidden md:flex items-center gap-2">
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm" className="font-semibold">
+                      Masuk
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end">
-                    <DropdownMenuLabel>
-                      <p className="text-sm font-medium">
-                        {profile?.full_name || user?.username}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {user?.email}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {role && getRoleDisplayName(role.name)}
-                      </p>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">
-                        <User className="mr-2 h-4 w-4" />
-                        Profil Saya
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile/edit">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Pengaturan
-                      </Link>
-                    </DropdownMenuItem>
-                    {role?.name === "admin" && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin">
-                            <Settings className="mr-2 h-4 w-4" />
-                            Dashboard Admin
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => logout()}
-                      className="text-destructive"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Keluar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                  </Link>
+                  <Link href="/register">
+                    <Button size="sm" className="font-semibold shadow-sm">
+                      Daftar
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t">
-        <div className="flex items-center justify-around py-2">
-          {navigation.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/" && pathname.startsWith(item.href));
-            return (
-              <Link key={item.name} href={item.href}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "flex-col h-auto py-2 px-3",
-                    isActive && "text-primary"
-                  )}
+      {/* Main Grid Layout with Left Sidebar */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] lg:grid-cols-[260px_1fr] gap-6 lg:gap-8 pt-6">
+          {/* Desktop Left Sidebar */}
+          <aside className="hidden md:block">
+            <div className="sticky top-22 space-y-6">
+              {/* Navigation Menu */}
+              <div className="space-y-1 bg-card/60 backdrop-blur border border-border/40 p-2.5 rounded-2xl shadow-xs">
+                <div className="px-3 py-2 text-[11px] font-bold text-muted-foreground/70 tracking-wider uppercase">
+                  Navigasi Utama
+                </div>
+
+                {sidebarNav.map((item) => {
+                  if (item.requiresStudent && role?.name === "guru") return null;
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== "/" && pathname.startsWith(item.href));
+
+                  return (
+                    <Link key={item.name} href={item.href}>
+                      <div
+                        className={cn(
+                          "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group cursor-pointer",
+                          isActive
+                            ? "bg-red-500/10 text-red-600 dark:text-red-400 font-semibold border-r-2 border-red-600 shadow-xs"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon
+                            className={cn(
+                              "h-4 w-4 transition-transform group-hover:scale-110",
+                              isActive ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+                            )}
+                          />
+                          <span>{item.name}</span>
+                        </div>
+                        {item.badge && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[9px] px-1.5 py-0.2 bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-bold"
+                          >
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Create Thread Action Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-700 text-white shadow-md space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-300" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-red-100">
+                    Komunitas Telkom
+                  </span>
+                </div>
+                <p className="text-xs text-red-50/90 leading-relaxed font-normal">
+                  Punya pertanyaan atau topik seru yang ingin didiskusikan?
+                </p>
+                <Link
+                  href={getToken() ? "/threads/new" : "/login?redirect=/threads/new"}
+                  className="block"
                 >
-                  <item.icon className="h-5 w-5" />
-                </Button>
-              </Link>
-            );
-          })}
-          {/* Menfess - Only for siswa and admin */}
+                  <Button
+                    variant="secondary"
+                    className="w-full bg-white text-red-700 hover:bg-red-50 font-bold shadow-sm gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Buat Diskusi Baru
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Profile Card Footer if Logged In */}
+              {user && (
+                <div className="p-3.5 rounded-2xl border border-border/50 bg-card/40 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="h-9 w-9 shrink-0 border border-primary/20">
+                      <AvatarImage src={user.avatar_url} />
+                      <AvatarFallback className="bg-red-50 text-red-600 font-bold">
+                        {(profile?.full_name || user.username || "U")[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold truncate">
+                        {profile?.full_name || user.username}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        @{user.username}
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/profile">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </aside>
+
+          {/* Main Page Content */}
+          <main className="min-w-0 pb-24 md:pb-8">
+            <div className="animate-fade-in">{children}</div>
+          </main>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border/60">
+        <div className="flex items-center justify-around py-2">
+          <Link href="/">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("flex-col h-auto py-1.5 px-3", pathname === "/" && "text-red-600 font-semibold")}
+            >
+              <Home className="h-5 w-5" />
+              <span className="text-[10px] mt-0.5">Beranda</span>
+            </Button>
+          </Link>
+
+          <Link href="/threads">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("flex-col h-auto py-1.5 px-3", pathname.startsWith("/threads") && pathname !== "/threads/new" && "text-red-600 font-semibold")}
+            >
+              <MessageSquare className="h-5 w-5" />
+              <span className="text-[10px] mt-0.5">Diskusi</span>
+            </Button>
+          </Link>
+
           {role?.name !== "guru" && (
             <Link href="/menfess">
               <Button
                 variant="ghost"
                 size="sm"
-                className={cn(
-                  "flex-col h-auto py-2 px-3",
-                  pathname === "/menfess" && "text-primary"
-                )}
+                className={cn("flex-col h-auto py-1.5 px-3", pathname === "/menfess" && "text-red-600 font-semibold")}
               >
-                <EyeOff className="h-5 w-5" />
+                <StickyNote className="h-5 w-5" />
+                <span className="text-[10px] mt-0.5">Menfess</span>
               </Button>
             </Link>
           )}
-          {/* Create Thread - Mobile */}
-          <Link href="/threads/new">
+
+          <Link href={getToken() ? "/threads/new" : "/login?redirect=/threads/new"}>
             <Button
               variant="ghost"
               size="sm"
-              className={cn(
-                "flex-col h-auto py-2 px-3",
-                pathname === "/threads/new" && "text-primary"
-              )}
+              className={cn("flex-col h-auto py-1.5 px-3", pathname === "/threads/new" && "text-red-600 font-semibold")}
             >
               <Plus className="h-5 w-5" />
+              <span className="text-[10px] mt-0.5">Buat</span>
             </Button>
           </Link>
-          {/* Profile Dropdown - Mobile */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "flex-col h-auto py-2 px-3",
-                  pathname.startsWith("/profile") && "text-primary"
-                )}
-              >
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={user?.avatar_url} />
-                  <AvatarFallback className="text-[10px]">
-                    {(profile?.full_name || user?.username || "U")[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="center" side="top">
-              <DropdownMenuLabel>
-                <p className="text-sm font-medium">
-                  {profile?.full_name || user?.username}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {user?.email}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {role && getRoleDisplayName(role.name)}
-                </p>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile">
-                  <User className="mr-2 h-4 w-4" />
-                  Profil Saya
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/profile/edit">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Pengaturan
-                </Link>
-              </DropdownMenuItem>
-              {role?.name === "admin" && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Dashboard Admin
-                    </Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => logout()}
-                className="text-destructive"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Keluar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+          <Link href={user ? "/profile" : "/login"}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("flex-col h-auto py-1.5 px-3", pathname.startsWith("/profile") && "text-red-600 font-semibold")}
+            >
+              <User className="h-5 w-5" />
+              <span className="text-[10px] mt-0.5">Profil</span>
+            </Button>
+          </Link>
         </div>
       </nav>
-
-
-      <main className="container mx-auto px-4 py-6 pb-24 md:pb-8 max-w-5xl">
-        <div className="animate-fade-in">
-          {children}
-        </div>
-      </main>
     </div>
   );
 }

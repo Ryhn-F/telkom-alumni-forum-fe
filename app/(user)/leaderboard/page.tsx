@@ -224,17 +224,6 @@ function LeaderboardContent() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="flex items-center justify-center gap-2">
-          <Trophy className="h-8 w-8 text-yellow-500" />
-          <h1 className="text-2xl font-bold">Leaderboard</h1>
-          <Trophy className="h-8 w-8 text-yellow-500" />
-        </div>
-        <p className="text-muted-foreground">
-          Pengguna paling aktif dan berkontribusi di forum
-        </p>
-      </div>
 
       {/* Info Banner */}
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background">
