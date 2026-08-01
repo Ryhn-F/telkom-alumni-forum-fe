@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/axios";
 import { useAuthStore } from "@/stores";
+import { toggleFollow } from "@/lib/follow";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 import {
   Calendar,
   GraduationCap,
@@ -27,8 +29,14 @@ import {
   User,
   Eye,
   MessageSquare,
+  UserPlus,
+  UserCheck,
+  Users,
+  Loader2,
 } from "lucide-react";
 import { GamificationCard } from "@/components/GamificationCard";
+import { FollowButton } from "@/components/FollowButton";
+import { FollowStatsCard } from "@/components/FollowStatsCard";
 import type { Thread, ThreadListResponse, PublicProfile } from "@/types";
 
 // Helper untuk display role
@@ -73,6 +81,11 @@ export default function UserProfilePage() {
   const [totalThreads, setTotalThreads] = useState(0);
   const limit = 5;
 
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
+
   // Redirect ke halaman profil sendiri jika username sama dengan user yang login
   useEffect(() => {
     if (currentUser?.username === username) {
@@ -88,6 +101,9 @@ export default function UserProfilePage() {
         setError(null);
         const res = await api.get<PublicProfile>(`/api/profile/${username}`);
         setProfile(res.data);
+        setIsFollowing(res.data.is_following || false);
+        setFollowersCount(res.data.followers_count || 0);
+        setFollowingCount(res.data.following_count || 0);
       } catch (err: unknown) {
         console.error("Failed to fetch profile:", err);
         const error = err as { response?: { status?: number } };
@@ -130,6 +146,37 @@ export default function UserProfilePage() {
       fetchThreads();
     }
   }, [username, page, error, currentUser?.username]);
+
+  const handleFollowAction = async () => {
+    if (!currentUser) {
+      toast.error("Silakan masuk terlebih dahulu untuk mengikuti pengguna ini");
+      router.push("/login");
+      return;
+    }
+
+    const prevFollowing = isFollowing;
+    const prevCount = followersCount;
+
+    // Optimistic Update
+    setIsFollowing(!prevFollowing);
+    setFollowersCount(prevFollowing ? prevCount - 1 : prevCount + 1);
+    setFollowLoading(true);
+
+    try {
+      const res = await toggleFollow(username, prevFollowing);
+      toast.success(res.message);
+    } catch (err: unknown) {
+      // Revert optimistic update
+      setIsFollowing(prevFollowing);
+      setFollowersCount(prevCount);
+
+      const error = err as { response?: { data?: { error?: string } } };
+      const errorMessage = error.response?.data?.error || "Gagal memperbarui status ikuti";
+      toast.error(errorMessage);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   // Jika loading
   if (loading) {
@@ -225,35 +272,61 @@ export default function UserProfilePage() {
 
         <CardContent className="relative pt-0">
           {/* Avatar yang overlap dengan banner */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-12">
-            <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
-              <AvatarImage src={profile.avatar_url} alt={profile.username} />
-              <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                {profile.username
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 -mt-12">
+            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
+              <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
+                <AvatarImage src={profile.avatar_url} alt={profile.username} />
+                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                  {profile.username
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
 
-            <div className="flex-1 text-center sm:text-left sm:pb-2">
-              <h2 className="text-2xl font-bold">{profile.username}</h2>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
-                <RoleBadgeComponent role={profile.role} />
-                {profile.angkatan && (
-                  <Badge variant="outline" className="gap-1">
-                    Angkatan {profile.angkatan}
-                  </Badge>
-                )}
+              <div className="flex-1 text-center sm:text-left sm:pb-2">
+                <h2 className="text-2xl font-bold">{profile.username}</h2>
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
+                  <RoleBadgeComponent role={profile.role} />
+                  {profile.angkatan && (
+                    <Badge variant="outline" className="gap-1">
+                      Angkatan {profile.angkatan}
+                    </Badge>
+                  )}
+                </div>
               </div>
+            </div>
+
+            {/* Tombol Follow / Unfollow */}
+            <div className="sm:pb-2">
+              <FollowButton
+                targetUsername={username}
+                initialIsFollowing={isFollowing}
+                onFollowChange={(newIsFollowing) => {
+                  setIsFollowing(newIsFollowing);
+                  setFollowersCount((prev) => (newIsFollowing ? prev + 1 : Math.max(0, prev - 1)));
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Followers & Following Counts */}
+          <div className="flex items-center justify-center sm:justify-start gap-6 mt-6 pt-4 border-t">
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="font-bold text-foreground">{followersCount}</span>
+              <span className="text-muted-foreground">Pengikut</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="font-bold text-foreground">{followingCount}</span>
+              <span className="text-muted-foreground">Mengikuti</span>
             </div>
           </div>
 
           {/* Bio */}
           {profile.bio && (
-            <div className="mt-6">
+            <div className="mt-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {profile.bio}
               </p>
@@ -261,7 +334,7 @@ export default function UserProfilePage() {
           )}
 
           {/* Info bergabung */}
-          <div className="mt-6 pt-4 border-t">
+          <div className="mt-4 pt-4 border-t">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span>
@@ -311,6 +384,7 @@ export default function UserProfilePage() {
             </div>
           </CardContent>
         </Card>
+        <FollowStatsCard followersCount={followersCount} />
       </div>
 
       {/* Daftar Thread */}

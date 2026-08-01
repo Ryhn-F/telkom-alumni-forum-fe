@@ -320,15 +320,17 @@ export function SearchTrigger() {
 
   return (
     <>
-      {/* Mobile: Icon only */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-9 w-9 md:hidden rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
+      {/* Mobile: Wide glowing search pill button */}
+      <button
+        type="button"
         onClick={() => setIsOpen(true)}
+        className="relative h-9 flex md:hidden items-center justify-start text-xs text-muted-foreground bg-background/90 border border-red-500/30 dark:border-red-600/40 rounded-xl px-3 shadow-[0_0_10px_rgba(239,68,68,0.12)] active:scale-[0.98] transition-all w-full cursor-pointer"
       >
-        <Search className="h-4 w-4" />
-      </Button>
+        <Search className="mr-2 h-3.5 w-3.5 text-red-500 shrink-0" />
+        <span className="text-muted-foreground/90 font-medium truncate">
+          Cari diskusi atau alumni...
+        </span>
+      </button>
 
       {/* Desktop: Glowing Wide Search Bar */}
       <button

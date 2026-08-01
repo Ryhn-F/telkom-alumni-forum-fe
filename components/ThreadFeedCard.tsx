@@ -5,11 +5,12 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Eye, Share2, ChevronDown, ChevronUp } from "lucide-react";
+import { MessageSquare, Eye, Share2, ChevronDown, ChevronUp, UserCheck } from "lucide-react";
 import { ReactionBar } from "@/components/ReactionBar";
 import { RichTextDisplay } from "@/components/RichTextDisplay";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useThreadViewTracker } from "@/hooks/useThreadViewTracker";
 import type { Thread, Reactions } from "@/types";
 
 interface ThreadFeedCardProps {
@@ -42,7 +43,14 @@ function formatRelativeTime(dateString: string): string {
 
 export function ThreadFeedCard({ thread, onReactionsChange }: ThreadFeedCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const cardRef = useThreadViewTracker({ threadId: thread.id, delayMs: 1000, threshold: 0.5 });
   const cleanedHtml = cleanContentForFeed(thread.content);
+
+  const plainTextContent = cleanedHtml.replace(/<[^>]*>/g, "").trim();
+  const hasDistinctTitle =
+    !!thread.title &&
+    thread.title.trim() !== "" &&
+    thread.title.trim() !== plainTextContent;
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -64,7 +72,20 @@ export function ThreadFeedCard({ thread, onReactionsChange }: ThreadFeedCardProp
   };
 
   return (
-    <article className="bg-card hover:bg-muted/20 border border-border/60 hover:border-border/80 rounded-2xl p-4 md:p-5 transition-all duration-200 shadow-xs space-y-3 group">
+    <article
+      ref={cardRef}
+      className="bg-card hover:bg-muted/20 border border-border/60 hover:border-border/80 rounded-2xl p-4 md:p-5 transition-all duration-200 shadow-xs space-y-3 group"
+    >
+      {/* Followed Unseen Badge Indicator */}
+      {thread.is_followed_unseen && (
+        <div className="flex items-center gap-1.5 mb-1">
+          <Badge className="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-[10px] font-semibold gap-1 px-2 py-0.5 rounded-full">
+            <UserCheck className="h-3 w-3" />
+            <span>Dari orang yang Anda ikuti</span>
+          </Badge>
+        </div>
+      )}
+
       {/* Header: Author & Metadata */}
       <div className="flex items-center justify-between gap-3">
         <Link
@@ -94,13 +115,15 @@ export function ThreadFeedCard({ thread, onReactionsChange }: ThreadFeedCardProp
         </Link>
       </div>
 
-      {/* Title & Formatted Body Content */}
+      {/* Title (Only shown if distinct title was provided) & Body Content */}
       <div className="space-y-2">
-        <Link href={`/threads/${thread.slug}`} onClick={handleCardClick}>
-          <h2 className="text-base md:text-lg font-bold text-foreground hover:text-red-600 dark:hover:text-red-400 transition-colors leading-snug">
-            {thread.title}
-          </h2>
-        </Link>
+        {hasDistinctTitle && (
+          <Link href={`/threads/${thread.slug}`} onClick={handleCardClick}>
+            <h2 className="text-base md:text-lg font-bold text-foreground hover:text-red-600 dark:hover:text-red-400 transition-colors leading-snug">
+              {thread.title}
+            </h2>
+          </Link>
+        )}
 
         {/* Rich Text Display with formatting preserved */}
         <div className={cn("relative transition-all duration-300 overflow-hidden", !isExpanded && "max-h-[140px]")}>
@@ -136,7 +159,7 @@ export function ThreadFeedCard({ thread, onReactionsChange }: ThreadFeedCardProp
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={thread.image_url}
-              alt={thread.title}
+              alt={thread.title || "Post image"}
               className="w-full h-full object-cover max-h-[380px] group-hover:scale-[1.01] transition-transform duration-300"
               loading="lazy"
             />

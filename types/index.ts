@@ -105,6 +105,7 @@ export interface Thread {
   };
   attachments: Attachment[];
   created_at: string;
+  is_followed_unseen?: boolean;
 }
 
 export interface ThreadListResponse {
@@ -396,6 +397,9 @@ export interface PublicProfile {
   angkatan?: string;
   bio?: string;
   gamification_status?: GamificationStatus;
+  followers_count?: number;
+  following_count?: number;
+  is_following?: boolean;
 }
 
 // ==================== My Profile Response ====================
@@ -404,6 +408,14 @@ export interface MyProfileResponse {
   role: Role;
   profile: Profile;
   gamification_status?: GamificationStatus;
+  followers_count?: number;
+  following_count?: number;
+}
+
+export interface FollowStatusResponse {
+  is_following: boolean;
+  followers_count: number;
+  following_count: number;
 }
 
 // ==================== Leaderboard ====================

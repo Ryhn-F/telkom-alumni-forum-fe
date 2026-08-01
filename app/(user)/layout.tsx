@@ -176,9 +176,6 @@ export default function UserLayout({
             <div className="sticky top-22 space-y-6">
               {/* Navigation Menu */}
               <div className="space-y-1 bg-card/60 backdrop-blur border border-border/40 p-2.5 rounded-2xl shadow-xs">
-                <div className="px-3 py-2 text-[11px] font-bold text-muted-foreground/70 tracking-wider uppercase">
-                  Navigasi Utama
-                </div>
 
                 {sidebarNav.map((item) => {
                   if (item.requiresStudent && role?.name === "guru") return null;
@@ -231,7 +228,7 @@ export default function UserLayout({
                   Punya pertanyaan atau topik seru yang ingin didiskusikan?
                 </p>
                 <Link
-                  href={getToken() ? "/threads/new" : "/login?redirect=/threads/new"}
+                  href="/threads/new"
                   className="block"
                 >
                   <Button
@@ -318,7 +315,7 @@ export default function UserLayout({
             </Link>
           )}
 
-          <Link href={getToken() ? "/threads/new" : "/login?redirect=/threads/new"}>
+          <Link href="/threads/new">
             <Button
               variant="ghost"
               size="sm"

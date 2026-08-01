@@ -25,12 +25,15 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  Users,
 } from "lucide-react";
 import { GamificationCard } from "@/components/GamificationCard";
 import type { Thread, ThreadListResponse, GamificationStatus } from "@/types";
 
 interface MyProfileResponse {
   gamification_status?: GamificationStatus;
+  followers_count?: number;
+  following_count?: number;
 }
 
 export default function ProfilePage() {
@@ -39,27 +42,31 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [gamificationStatus, setGamificationStatus] = useState<GamificationStatus | null>(null);
   const [gamificationLoading, setGamificationLoading] = useState(true);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5; // Show 5 per page
 
-  // Fetch gamification status dari /api/profile/me
+  // Fetch gamification status & follow counts dari /api/profile/me
   useEffect(() => {
-    const fetchGamification = async () => {
+    const fetchProfileMe = async () => {
       setGamificationLoading(true);
       try {
         const res = await api.get<MyProfileResponse>("/api/profile/me");
         if (res.data.gamification_status) {
           setGamificationStatus(res.data.gamification_status);
         }
+        setFollowersCount(res.data.followers_count || 0);
+        setFollowingCount(res.data.following_count || 0);
       } catch (err) {
-        console.error("Failed to fetch gamification status:", err);
+        console.error("Failed to fetch profile me:", err);
       } finally {
         setGamificationLoading(false);
       }
     };
 
-    fetchGamification();
+    fetchProfileMe();
   }, []);
 
   useEffect(() => {
@@ -116,8 +123,21 @@ export default function ProfilePage() {
                   <Badge variant="outline">Angkatan {profile.angkatan}</Badge>
                 )}
               </div>
+
+              {/* Followers and Following Counters */}
+              <div className="flex items-center justify-center sm:justify-start gap-6 mt-4 pt-3 border-t">
+                <div className="flex items-center gap-1.5 text-sm">
+                  <span className="font-bold text-foreground">{followersCount}</span>
+                  <span className="text-muted-foreground">Pengikut</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm">
+                  <span className="font-bold text-foreground">{followingCount}</span>
+                  <span className="text-muted-foreground">Mengikuti</span>
+                </div>
+              </div>
+
               {profile?.bio && (
-                  <p className="text-sm text-muted-foreground mt-4">
+                <p className="text-sm text-muted-foreground mt-3">
                   {profile.bio}
                 </p>
               )}
@@ -182,6 +202,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -212,7 +233,7 @@ export default function ProfilePage() {
                         </Badge>
                         <span>{thread.views} views</span>
                         <span>•</span>
-                         <span>
+                        <span>
                           {new Date(thread.created_at).toLocaleDateString(
                             "id-ID"
                           )}

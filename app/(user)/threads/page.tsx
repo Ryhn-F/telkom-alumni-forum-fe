@@ -6,10 +6,11 @@ import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Plus, Loader2, Sparkles } from "lucide-react";
+import { MessageSquare, Loader2 } from "lucide-react";
 import type { Thread, ThreadListResponse, Reactions } from "@/types";
 import { GuestBanner } from "@/components/GuestBanner";
 import { ThreadFeedCard } from "@/components/ThreadFeedCard";
+import { InlinePostComposer } from "@/components/InlinePostComposer";
 import { getToken } from "@/lib/cookies";
 
 function ThreadsContent() {
@@ -110,27 +111,11 @@ function ThreadsContent() {
   }, [hasMore, loading, fetchingMore, loadThreads]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <GuestBanner />
 
-      {/* Header Feed Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/40">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-red-600 dark:text-red-400" />
-            Feed Diskusi Komunitas
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Topik terbaru & terbanyak didiskusikan oleh siswa dan alumni Telkom
-          </p>
-        </div>
-        <Link href={getToken() ? "/threads/new" : "/login?redirect=/threads/new"}>
-          <Button className="gap-2 font-semibold shadow-md">
-            <Plus className="h-4 w-4" />
-            Buat Diskusi
-          </Button>
-        </Link>
-      </div>
+      {/* X/Twitter Style Inline Post Composer */}
+      <InlinePostComposer onPostCreated={() => loadThreads(1, true)} />
 
       {/* X/Twitter Style Threads Feed */}
       <div className="space-y-4">
@@ -167,12 +152,12 @@ function ThreadsContent() {
               {fetchingMore && (
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin text-red-600" />
-                  <span>Memuat diskusi berikutnya...</span>
+                  <span>Memuat postingan berikutnya...</span>
                 </div>
               )}
               {!hasMore && (
                 <p className="text-xs text-muted-foreground/70 py-4">
-                  ✨ Anda telah mencapai bagian akhir diskusi.
+                  ✨ Anda telah mencapai bagian akhir postingan.
                 </p>
               )}
             </div>
@@ -181,13 +166,10 @@ function ThreadsContent() {
           <Card className="rounded-2xl">
             <CardContent className="py-12 text-center space-y-3">
               <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground/60" />
-              <h3 className="font-semibold text-lg">Belum Ada Diskusi</h3>
+              <h3 className="font-semibold text-lg">Belum Ada Postingan</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Jadilah yang pertama membuat diskusi baru untuk komunitas Telkom!
+                Tulis postingan pertama di atas untuk komunitas Telkom!
               </p>
-              <Link href={getToken() ? "/threads/new" : "/login?redirect=/threads/new"}>
-                <Button className="mt-2 font-semibold">Mulai Diskusi Pertama</Button>
-              </Link>
             </CardContent>
           </Card>
         )}
@@ -199,7 +181,7 @@ function ThreadsContent() {
 function ThreadsLoading() {
   return (
     <div className="space-y-6">
-      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-24 w-full rounded-2xl" />
       {[1, 2, 3].map((i) => (
         <Card key={i} className="rounded-2xl p-4">
           <CardContent className="pt-2 space-y-3">

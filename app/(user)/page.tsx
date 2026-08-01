@@ -29,7 +29,7 @@ import { ThreadFeedCard } from "@/components/ThreadFeedCard";
 import type { Thread, ThreadListResponse, Reactions } from "@/types";
 
 export default function HomePage() {
-  const { profile, role } = useAuthStore();
+  const { user, profile, role } = useAuthStore();
   const [recentThreads, setRecentThreads] = useState<Thread[]>([]);
   const [trendingThreads, setTrendingThreads] = useState<Thread[]>([]);
   const [userCount, setUserCount] = useState(0);
@@ -39,7 +39,7 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [recentRes, trendingRes, userCountRes] = await Promise.all([
-          api.get<ThreadListResponse>("/api/threads", { params: { page: 1, limit: 10 } }),
+          api.get<ThreadListResponse>("/api/threads", { params: { page: 1, limit: 10, sort_by: "newest" } }),
           api.get<{ data: Thread[] }>("/api/threads/trending", {
             params: { limit: 5 },
           }),
@@ -55,7 +55,7 @@ export default function HomePage() {
       }
     };
     fetchData();
-  }, []);
+  }, [user?.id]);
 
   // Restore scroll position when returning back from thread detail
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function HomePage() {
             {role && `Anda masuk sebagai ${getRoleDisplayName(role.name)}. `}Apa yang ingin Anda diskusikan dengan komunitas Telkom hari ini?
           </p>
           <div className="pt-2">
-            <Link href={getToken() ? "/threads/new" : "/login?redirect=/threads/new"}>
+            <Link href="/threads/new">
               <Button className="gap-2 hover:scale-105 transition-transform shadow-md font-semibold">
                 <Plus className="h-4 w-4" />
                 Mulai Diskusi Baru
