@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -9,8 +9,10 @@ import { useAuthStore } from "@/stores";
 import { getRoleDisplayName } from "@/lib/auth";
 import { getToken } from "@/lib/cookies";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
+import { getUserCosmetics } from "@/lib/cosmetic";
+import type { UserEquip } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +61,12 @@ export default function UserLayout({
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { user, role, profile } = useAuthStore();
+  const [equip, setEquip] = useState<UserEquip | null>(null);
+
+  useEffect(() => {
+    if (!user?.username) return;
+    getUserCosmetics(user.username).then(setEquip).catch(() => setEquip(null));
+  }, [user?.username]);
 
   // One heartbeat per browser session (not per navigation — the layout
   // persists across route changes, and the call is idempotent per WIB day
@@ -110,14 +118,15 @@ export default function UserLayout({
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="relative h-9 w-9 rounded-full ring-2 ring-primary/20 hover:ring-primary/40 transition-all"
+                        className="relative h-9 w-9 rounded-full p-0 ring-2 ring-primary/20 hover:ring-primary/40 transition-all"
                       >
-                        <Avatar className="h-9 w-9">
-                          <AvatarImage src={user?.avatar_url} />
-                          <AvatarFallback className="bg-red-50 text-red-600 font-bold">
-                            {(profile?.full_name || user?.username || "U")[0].toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <CosmeticAvatar
+                          avatarUrl={user?.avatar_url}
+                          username={profile?.full_name || user?.username || "U"}
+                          size={36}
+                          border={equip?.avatar_border}
+                          fallbackClassName="bg-red-50 text-red-600"
+                        />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56" align="end">
@@ -264,12 +273,14 @@ export default function UserLayout({
               {user && (
                 <div className="p-3.5 rounded-2xl border border-border/50 bg-card/40 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <Avatar className="h-9 w-9 shrink-0 border border-primary/20">
-                      <AvatarImage src={user.avatar_url} />
-                      <AvatarFallback className="bg-red-50 text-red-600 font-bold">
-                        {(profile?.full_name || user.username || "U")[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <CosmeticAvatar
+                      avatarUrl={user.avatar_url}
+                      username={profile?.full_name || user.username || "U"}
+                      size={36}
+                      border={equip?.avatar_border}
+                      className="shrink-0 border border-primary/20"
+                      fallbackClassName="bg-red-50 text-red-600"
+                    />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold truncate">
                         {profile?.full_name || user.username}
