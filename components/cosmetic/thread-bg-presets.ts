@@ -21,3 +21,14 @@ export const THREAD_BG_PRESETS: Record<string, { light: string; dark: string }> 
   "tint-rose": { light: "rgba(225, 29, 72, 0.07)", dark: "rgba(251, 113, 133, 0.13)" },
   "tint-slate": { light: "rgba(51, 65, 85, 0.06)", dark: "rgba(148, 163, 184, 0.12)" },
 };
+
+// Animated presets — moving gradients instead of a flat color. Rendered via
+// CSS class (see ./thread-bg-animated.css), not a color lookup, so they
+// live in a separate keyed set ThreadBgTint checks first. Kept out of
+// THREAD_BG_PRESETS above so "is this preset_key animated?" stays a single
+// Set membership check rather than a shape-sniff on the value.
+export const THREAD_BG_ANIMATED_PRESETS = new Set([
+  "gradient-aurora",
+  "gradient-sunset",
+  "gradient-spectrum",
+]);

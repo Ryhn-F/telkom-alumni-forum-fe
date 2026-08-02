@@ -44,14 +44,15 @@ function CosmeticPreview({ cosmetic }: { cosmetic: Cosmetic }) {
       </div>
     );
   }
-  // thread_bg preview: show the tint against sample card content
-  const preset =
-    cosmetic.render_type === "css" && "preset_key" in cosmetic.payload
-      ? cosmetic.payload.preset_key
-      : null;
+  // thread_bg preview: render the actual tint/gradient against sample text,
+  // same component used on real cards — not a placeholder label.
   return (
-    <div className="h-20 rounded-lg border border-border/60 bg-card flex items-center justify-center text-xs text-muted-foreground">
-      {preset ? `Tint: ${preset}` : "Latar thread"}
+    <div className="relative h-20 rounded-lg border border-border/60 bg-card overflow-hidden px-3 flex flex-col justify-center">
+      <ThreadBgTint cosmetic={cosmetic} />
+      <p className="relative z-[1] text-[11px] text-foreground/90 leading-snug line-clamp-2">
+        Contoh isi thread kamu bakal kelihatan begini.
+      </p>
+      <p className="relative z-[1] text-[10px] text-muted-foreground mt-1">fardhan · 2j lalu</p>
     </div>
   );
 }

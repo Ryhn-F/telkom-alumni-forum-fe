@@ -1,0 +1,63 @@
+/* Animated thread_bg presets — still CSS-only (no raster image/video), so
+   the core tradeoff from docs/SPEC-cosmetics-economy.md §1 (thread_bg stays
+   render-cheap because it sits behind readable text in a dense feed) mostly
+   holds: no image decode/paint cost, GPU-compositable (background-position,
+   filter: hue-rotate). It is NOT free like a static tint though — N
+   simultaneously-animating gradients in a 20+ card feed is more compositor
+   work than N static colors. Kept deliberately few and slow-moving for that
+   reason; if a feed ever demonstrably jank thread_bg-heavy pages, capping
+   how many animated instances render at once (as opposed to instant
+   opt-out) would be the next lever, not removal.
+
+   Opacity is deliberately LOWER than the static tints in thread-bg-presets.ts.
+   Those were verified per-hue against real theme colors; an animated
+   gradient cycles through hues we can't cherry-pick, including yellow/amber
+   (the one hue proven to be riskiest for the >=4.5:1 gate). Every preset
+   here is capped at the amber-safe ceiling (0.05 light / 0.10 dark) or
+   lower for gradient-spectrum, which contains undiluted yellow. */
+
+@keyframes thread-bg-drift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes thread-bg-hue-shift {
+  to { filter: hue-rotate(360deg); }
+}
+
+.thread-bg-gradient-aurora {
+  background: linear-gradient(120deg, #3b82f6, #a855f7, #06b6d4, #3b82f6);
+  background-size: 300% 300%;
+  opacity: 0.05;
+  animation: thread-bg-drift 12s ease-in-out infinite;
+}
+.dark .thread-bg-gradient-aurora {
+  opacity: 0.10;
+}
+
+.thread-bg-gradient-sunset {
+  background: linear-gradient(120deg, #f59e0b, #ef4444, #ec4899, #f59e0b);
+  background-size: 300% 300%;
+  opacity: 0.05;
+  animation: thread-bg-drift 14s ease-in-out infinite;
+}
+.dark .thread-bg-gradient-sunset {
+  opacity: 0.10;
+}
+
+.thread-bg-gradient-spectrum {
+  background: conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #3b82f6, #8b5cf6, #ef4444);
+  opacity: 0.035;
+  animation: thread-bg-hue-shift 10s linear infinite;
+}
+.dark .thread-bg-gradient-spectrum {
+  opacity: 0.07;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thread-bg-gradient-aurora,
+  .thread-bg-gradient-sunset,
+  .thread-bg-gradient-spectrum {
+    animation: none;
+  }
+}

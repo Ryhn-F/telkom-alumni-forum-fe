@@ -723,11 +723,12 @@ function PostItem({
 
   return (
     <Card
-      className={`
+      className={`relative overflow-hidden
         ${isIndented ? "ml-6 sm:ml-8 border-l-2 border-primary/30" : ""}
       `}
     >
-      <CardContent className="pt-4">
+      <ThreadBgTint cosmetic={post.author.equip?.thread_bg} />
+      <CardContent className="relative z-[1] pt-4">
         {/* Reply indicator - only show for depth >= 2 */}
         {showReplyingToIndicator && (
           <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">

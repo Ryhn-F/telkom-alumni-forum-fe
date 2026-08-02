@@ -187,7 +187,7 @@ function CosmeticForm({
           <Input
             value={value.preset_key || ""}
             onChange={(e) => onChange({ ...value, preset_key: e.target.value })}
-            placeholder={value.slot === "thread_bg" ? "mis. tint-blue" : "mis. ring-conic-spin"}
+            placeholder={value.slot === "thread_bg" ? "mis. tint-blue atau gradient-aurora" : "mis. ring-conic-spin"}
           />
           <p className="text-xs text-muted-foreground">
             Harus cocok preset yang terdaftar di kode FE (
@@ -195,6 +195,12 @@ function CosmeticForm({
               ? "components/cosmetic/thread-bg-presets.ts"
               : "components/cosmetic/cosmetic-rings.css"}
             ).
+            {value.slot === "thread_bg" && (
+              <>
+                {" "}Tint statis: tint-blue, tint-purple, tint-emerald, tint-crimson, tint-teal, tint-amber,
+                tint-rose, tint-slate. Gradient bergerak: gradient-aurora, gradient-sunset, gradient-spectrum.
+              </>
+            )}
           </p>
         </div>
       ) : (
