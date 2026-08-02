@@ -66,9 +66,10 @@ const TINTS: Tint[] = [
   { name: "Amber Ekstrem (uji batas)", light: "rgba(180, 83, 9, 0.55)", dark: "rgba(253, 224, 71, 0.65)", intentionallyBad: true },
 ];
 
-// 96px avatar × 1.2 ratio (baseline dari riset #4) → kotak decoration 115.2px
-const DECORATION_BOX_96 = 115.2;
-const DECORATION_BOX_40 = 48;
+// Rasio 1,25× (dikunci tiket "Kunci spek produksi aset untuk tim seni", #10 —
+// menyimpang sengaja dari baseline riset 1,2×/#4 supaya kotak render jadi bilangan bulat)
+const DECORATION_BOX_96 = 120;
+const DECORATION_BOX_40 = 50;
 
 export default function CosmeticsHarnessPage() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -251,6 +252,16 @@ export default function CosmeticsHarnessPage() {
               <label className="flex items-center gap-1.5">
                 <input type="file" accept="image/*" onChange={handleFile} />
               </label>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  if (decorationUrl) URL.revokeObjectURL(decorationUrl);
+                  setDecorationUrl("/dev-assets/decoration_smoke-ring_animated.png");
+                }}
+              >
+                Coba: Smoke Ring
+              </Button>
               {decorationUrl && (
                 <>
                   <label className="flex items-center gap-1.5">
