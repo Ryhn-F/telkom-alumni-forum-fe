@@ -96,3 +96,8 @@ export async function adminUpdateCosmetic(
   );
   return response.data;
 }
+
+export async function adminListCosmetics(): Promise<Cosmetic[]> {
+  const response = await api.get<{ data: Cosmetic[] }>("/api/admin/cosmetics");
+  return response.data.data;
+}

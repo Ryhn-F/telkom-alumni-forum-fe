@@ -24,6 +24,7 @@ import {
   Moon,
   ArrowLeft,
   Shield,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Kelola Pengguna", href: "/admin/users", icon: Users },
   { name: "Kelola Kategori", href: "/admin/categories", icon: FolderOpen },
+  { name: "Kelola Kosmetik", href: "/admin/cosmetics", icon: Sparkles },
 ];
 
 export default function AdminLayout({

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -39,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { SearchTrigger } from "@/components/SearchDialog";
 import { WalletChip } from "@/components/cosmetic/WalletChip";
+import { heartbeat } from "@/lib/activity";
 
 const sidebarNav = [
   { name: "Beranda", href: "/", icon: Home },
@@ -57,6 +59,16 @@ export default function UserLayout({
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { user, role, profile } = useAuthStore();
+
+  // One heartbeat per browser session (not per navigation — the layout
+  // persists across route changes, and the call is idempotent per WIB day
+  // anyway) — feeds the login_streak daily mission + streak achievements.
+  useEffect(() => {
+    if (!user) return;
+    if (sessionStorage.getItem("streak_heartbeat_sent") === "1") return;
+    sessionStorage.setItem("streak_heartbeat_sent", "1");
+    heartbeat().catch(() => sessionStorage.removeItem("streak_heartbeat_sent"));
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-background overflow-x-clip">
