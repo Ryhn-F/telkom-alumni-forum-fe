@@ -326,39 +326,39 @@
   to { filter: hue-rotate(360deg); }
 }
 
-.thread-bg-gradient-aurora {
+.gradient-aurora {
   background: linear-gradient(120deg, #3b82f6, #a855f7, #06b6d4, #3b82f6);
   background-size: 300% 300%;
   opacity: 0.05;
   animation: thread-bg-drift 12s ease-in-out infinite;
 }
-.dark .thread-bg-gradient-aurora {
+.dark .gradient-aurora {
   opacity: 0.10;
 }
 
-.thread-bg-gradient-sunset {
+.gradient-sunset {
   background: linear-gradient(120deg, #f59e0b, #ef4444, #ec4899, #f59e0b);
   background-size: 300% 300%;
   opacity: 0.05;
   animation: thread-bg-drift 14s ease-in-out infinite;
 }
-.dark .thread-bg-gradient-sunset {
+.dark .gradient-sunset {
   opacity: 0.10;
 }
 
-.thread-bg-gradient-spectrum {
+.gradient-spectrum {
   background: conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #3b82f6, #8b5cf6, #ef4444);
   opacity: 0.035;
   animation: thread-bg-hue-shift 10s linear infinite;
 }
-.dark .thread-bg-gradient-spectrum {
+.dark .gradient-spectrum {
   opacity: 0.07;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .thread-bg-gradient-aurora,
-  .thread-bg-gradient-sunset,
-  .thread-bg-gradient-spectrum {
+  .gradient-aurora,
+  .gradient-sunset,
+  .gradient-spectrum {
     animation: none;
   }
 }
