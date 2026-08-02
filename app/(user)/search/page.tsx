@@ -19,7 +19,9 @@ import {
   ArrowLeft,
   Clock,
 } from "lucide-react";
-import type { MeilisearchThread, MeilisearchPost } from "@/types";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
+import { batchGetCosmetics } from "@/lib/cosmetic";
+import type { MeilisearchThread, MeilisearchPost, UserEquip } from "@/types";
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "");
@@ -52,7 +54,13 @@ function formatDate(timestamp: number): string {
   });
 }
 
-function ThreadCard({ thread }: { thread: MeilisearchThread }) {
+function ThreadCard({
+  thread,
+  equipMap,
+}: {
+  thread: MeilisearchThread;
+  equipMap: Record<string, UserEquip>;
+}) {
   const formatted = thread._formatted;
   const username = thread.user?.username || "Anonim";
   const categoryName = thread.category?.name || "Kategori";
@@ -88,13 +96,19 @@ function ThreadCard({ thread }: { thread: MeilisearchThread }) {
               </p>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span
-                  className="hover:text-primary cursor-pointer transition-colors"
+                  className="flex items-center gap-1.5 hover:text-primary cursor-pointer transition-colors"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     window.location.href = `/users/${username}`;
                   }}
                 >
+                  <CosmeticAvatar
+                    avatarUrl={thread.user?.avatar_url}
+                    username={username}
+                    size={18}
+                    border={equipMap[username]?.avatar_border}
+                  />
                   oleh <span className="font-medium">{username}</span>
                 </span>
                 <span className="flex items-center gap-1">
@@ -116,7 +130,13 @@ function ThreadCard({ thread }: { thread: MeilisearchThread }) {
   );
 }
 
-function PostCard({ post }: { post: MeilisearchPost }) {
+function PostCard({
+  post,
+  equipMap,
+}: {
+  post: MeilisearchPost;
+  equipMap: Record<string, UserEquip>;
+}) {
   const formatted = post._formatted;
   const username = post.user?.username || "Anonim";
 
@@ -142,13 +162,19 @@ function PostCard({ post }: { post: MeilisearchPost }) {
               </p>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span
-                  className="hover:text-primary cursor-pointer transition-colors"
+                  className="flex items-center gap-1.5 hover:text-primary cursor-pointer transition-colors"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     window.location.href = `/users/${username}`;
                   }}
                 >
+                  <CosmeticAvatar
+                    avatarUrl={post.user?.avatar_url}
+                    username={username}
+                    size={18}
+                    border={equipMap[username]?.avatar_border}
+                  />
                   oleh <span className="font-medium">{username}</span>
                 </span>
                 <span className="flex items-center gap-1">
@@ -212,6 +238,23 @@ function SearchContent() {
   const hasPostResults = posts && posts.hits.length > 0;
   const hasResults = hasThreadResults || hasPostResults;
   const totalResults = (threads?.total || 0) + (posts?.estimatedTotalHits || 0);
+
+  // Hydrate equipped cosmetics for every unique author currently on screen —
+  // Meilisearch's own document copy of the author is stale for equip state
+  // (only refreshed when the user's thread/post is created/edited), so this
+  // is fetched separately via the BE batch endpoint rather than trusted from
+  // the search index itself.
+  const [equipMap, setEquipMap] = useState<Record<string, UserEquip>>({});
+  useEffect(() => {
+    const usernames = new Set<string>();
+    threads?.results.forEach((t) => t.user?.username && usernames.add(t.user.username));
+    posts?.hits.forEach((p) => p.user?.username && usernames.add(p.user.username));
+    if (usernames.size === 0) return;
+
+    batchGetCosmetics(Array.from(usernames))
+      .then(setEquipMap)
+      .catch(() => setEquipMap({}));
+  }, [threads, posts]);
 
   const canLoadMoreThreads = threads && threads.results.length < threads.total;
   const canLoadMorePosts =
@@ -370,7 +413,7 @@ function SearchContent() {
                   )}
                 </div>
                 {threads?.results.slice(0, 3).map((thread) => (
-                  <ThreadCard key={thread.id} thread={thread} />
+                  <ThreadCard key={thread.id} thread={thread} equipMap={equipMap} />
                 ))}
               </div>
             )}
@@ -394,7 +437,7 @@ function SearchContent() {
                   )}
                 </div>
                 {posts?.hits.slice(0, 3).map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard key={post.id} post={post} equipMap={equipMap} />
                 ))}
               </div>
             )}
@@ -404,7 +447,7 @@ function SearchContent() {
             {hasThreadResults ? (
               <>
                 {threads?.results.map((thread) => (
-                  <ThreadCard key={thread.id} thread={thread} />
+                  <ThreadCard key={thread.id} thread={thread} equipMap={equipMap} />
                 ))}
                 {canLoadMoreThreads && (
                   <div className="flex justify-center">
@@ -441,7 +484,7 @@ function SearchContent() {
             {hasPostResults ? (
               <>
                 {posts?.hits.map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard key={post.id} post={post} equipMap={equipMap} />
                 ))}
                 {canLoadMorePosts && (
                   <div className="flex justify-center">

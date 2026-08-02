@@ -123,6 +123,19 @@ export interface WalletResponse {
   balance: number;
 }
 
+export interface WalletTransaction {
+  id: number;
+  amount: number;
+  source_type: string;
+  balance_after: number;
+  created_at: string;
+}
+
+export interface TransactionListResponse {
+  data: WalletTransaction[];
+  meta: { limit: number; offset: number };
+}
+
 export interface Mission {
   id: number;
   name: string;

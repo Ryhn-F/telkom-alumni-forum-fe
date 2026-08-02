@@ -17,7 +17,9 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import type { MeilisearchThread, MeilisearchPost } from "@/types";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
+import { batchGetCosmetics } from "@/lib/cosmetic";
+import type { MeilisearchThread, MeilisearchPost, UserEquip } from "@/types";
 
 interface SearchDialogProps {
   isOpen: boolean;
@@ -44,9 +46,16 @@ function highlightText(text: string): React.ReactNode {
   });
 }
 
-function ThreadResult({ thread }: { thread: MeilisearchThread }) {
+function ThreadResult({
+  thread,
+  equipMap,
+}: {
+  thread: MeilisearchThread;
+  equipMap: Record<string, UserEquip>;
+}) {
   const formatted = thread._formatted;
-  
+  const username = thread.user?.username || "Anonim";
+
   return (
     <Link href={`/threads/${thread.slug}`} className="block">
       <div className="group p-4 hover:bg-muted/50 rounded-lg transition-all cursor-pointer border border-transparent hover:border-border">
@@ -65,7 +74,15 @@ function ThreadResult({ thread }: { thread: MeilisearchThread }) {
               <Badge variant="secondary" className="text-xs">
                 {thread.category?.name || "Kategori"}
               </Badge>
-              <span className="text-xs text-muted-foreground">oleh {thread.user?.username || "Anonim"}</span>
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <CosmeticAvatar
+                  avatarUrl={thread.user?.avatar_url}
+                  username={username}
+                  size={16}
+                  border={equipMap[username]?.avatar_border}
+                />
+                oleh {username}
+              </span>
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
@@ -75,9 +92,16 @@ function ThreadResult({ thread }: { thread: MeilisearchThread }) {
   );
 }
 
-function PostResult({ post }: { post: MeilisearchPost }) {
+function PostResult({
+  post,
+  equipMap,
+}: {
+  post: MeilisearchPost;
+  equipMap: Record<string, UserEquip>;
+}) {
   const formatted = post._formatted;
-  
+  const username = post.user?.username || "Anonim";
+
   return (
     <Link href={`/threads/${post.thread_slug}`} className="block">
       <div className="group p-4 hover:bg-muted/50 rounded-lg transition-all cursor-pointer border border-transparent hover:border-border">
@@ -92,8 +116,14 @@ function PostResult({ post }: { post: MeilisearchPost }) {
             <p className="text-sm line-clamp-2">
               {formatted?.content ? highlightText(stripHtml(formatted.content)) : stripHtml(post.content).slice(0, 150)}
             </p>
-            <span className="text-xs text-muted-foreground mt-1 inline-block">
-              oleh {post.user?.username || "Anonim"}
+            <span className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+              <CosmeticAvatar
+                avatarUrl={post.user?.avatar_url}
+                username={username}
+                size={16}
+                border={equipMap[username]?.avatar_border}
+              />
+              oleh {username}
             </span>
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
@@ -115,6 +145,18 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
     search,
     clearResults,
   } = useSearchStore();
+
+  const [equipMap, setEquipMap] = useState<Record<string, UserEquip>>({});
+  useEffect(() => {
+    const usernames = new Set<string>();
+    threads?.results.forEach((t) => t.user?.username && usernames.add(t.user.username));
+    posts?.hits.forEach((p) => p.user?.username && usernames.add(p.user.username));
+    if (usernames.size === 0) return;
+
+    batchGetCosmetics(Array.from(usernames))
+      .then(setEquipMap)
+      .catch(() => setEquipMap({}));
+  }, [threads, posts]);
 
   // Debounce search
   useEffect(() => {
@@ -253,7 +295,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
                   </div>
                   {threads.results.slice(0, 3).map((thread: MeilisearchThread) => (
                     <div key={thread.id} onClick={handleClose}>
-                      <ThreadResult thread={thread} />
+                      <ThreadResult thread={thread} equipMap={equipMap} />
                     </div>
                   ))}
                 </div>
@@ -266,7 +308,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
                   </div>
                   {posts.hits.slice(0, 3).map((post: MeilisearchPost) => (
                     <div key={post.id} onClick={handleClose}>
-                      <PostResult post={post} />
+                      <PostResult post={post} equipMap={equipMap} />
                     </div>
                   ))}
                 </div>

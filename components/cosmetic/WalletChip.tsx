@@ -21,7 +21,7 @@ export function WalletChip() {
 
   return (
     <Link
-      href="/shop"
+      href="/wallet"
       className="flex items-center gap-1.5 h-9 px-3 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber-500/20 transition-colors"
       title="Tel-Credits"
     >
