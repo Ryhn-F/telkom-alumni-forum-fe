@@ -22,7 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getToken } from "@/lib/cookies";
@@ -196,13 +196,13 @@ export function NotificationDropdown() {
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start gap-3 w-full">
-                    <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarImage src={notification.actor?.avatar_url} />
-                      <AvatarFallback>
-                        {notification.actor?.username?.[0]?.toUpperCase() ||
-                          "U"}
-                      </AvatarFallback>
-                    </Avatar>
+                    <CosmeticAvatar
+                      avatarUrl={notification.actor?.avatar_url}
+                      username={notification.actor?.username || "U"}
+                      size={32}
+                      border={notification.actor?.equip?.avatar_border}
+                      className="shrink-0"
+                    />
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">

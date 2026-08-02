@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useHydration } from "@/hooks/use-hydration";
 import { blend, contrastRatio, parseRgb } from "./contrast";
+import "@/components/cosmetic/cosmetic-rings.css";
 import "./cosmetics-harness.css";
 
 if (process.env.NODE_ENV === "production") {

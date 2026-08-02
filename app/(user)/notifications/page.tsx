@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNotificationStore } from "@/stores";
@@ -162,12 +162,13 @@ export default function NotificationsPage() {
                     !notification.is_read && "bg-muted/30 border-primary/20"
                   )}
                 >
-                  <Avatar className="h-10 w-10 shrink-0">
-                    <AvatarImage src={notification.actor?.avatar_url} />
-                    <AvatarFallback>
-                      {notification.actor?.username?.[0]?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <CosmeticAvatar
+                    avatarUrl={notification.actor?.avatar_url}
+                    username={notification.actor?.username || "U"}
+                    size={40}
+                    border={notification.actor?.equip?.avatar_border}
+                    className="shrink-0"
+                  />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
 import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
@@ -318,12 +318,12 @@ export default function ThreadDetailPage() {
                   className="flex items-center gap-2 hover:text-primary transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={thread.author.avatar_url} />
-                    <AvatarFallback>
-                      {thread.author.username[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <CosmeticAvatar
+                    avatarUrl={thread.author.avatar_url}
+                    username={thread.author.username}
+                    size={24}
+                    border={thread.author.equip?.avatar_border}
+                  />
                   <span className="hover:underline">
                     {thread.author.username}
                   </span>
@@ -746,12 +746,13 @@ function PostItem({
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3 w-full">
             <Link href={`/users/${post.author.username}`}>
-              <Avatar className="h-8 w-8 hover:ring-2 hover:ring-primary/50 transition-all">
-                <AvatarImage src={post.author.avatar_url} />
-                <AvatarFallback>
-                  {post.author.username[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <CosmeticAvatar
+                avatarUrl={post.author.avatar_url}
+                username={post.author.username}
+                size={32}
+                border={post.author.equip?.avatar_border}
+                className="hover:ring-2 hover:ring-primary/50 transition-all"
+              />
             </Link>
             <div className="flex-1 space-y-2">
               <div className="flex items-center gap-2">

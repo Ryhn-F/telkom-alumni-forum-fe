@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
+import { ThreadBgTint } from "@/components/cosmetic/ThreadBgTint";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Eye, Share2, ChevronDown, ChevronUp, UserCheck } from "lucide-react";
@@ -74,8 +75,10 @@ export function ThreadFeedCard({ thread, onReactionsChange }: ThreadFeedCardProp
   return (
     <article
       ref={cardRef}
-      className="bg-card hover:bg-muted/20 border border-border/60 hover:border-border/80 rounded-2xl p-4 md:p-5 transition-all duration-200 shadow-xs space-y-3 group"
+      className="relative bg-card hover:bg-muted/20 border border-border/60 hover:border-border/80 rounded-2xl overflow-hidden transition-all duration-200 shadow-xs group"
     >
+      <ThreadBgTint cosmetic={thread.author.equip?.thread_bg} />
+      <div className="relative p-4 md:p-5 space-y-3">
       {/* Followed Unseen Badge Indicator */}
       {thread.is_followed_unseen && (
         <div className="flex items-center gap-1.5 mb-1">
@@ -93,12 +96,14 @@ export function ThreadFeedCard({ thread, onReactionsChange }: ThreadFeedCardProp
           onClick={handleCardClick}
           className="flex items-center gap-3 group/author"
         >
-          <Avatar className="h-10 w-10 border border-primary/10">
-            <AvatarImage src={thread.author.avatar_url} />
-            <AvatarFallback className="bg-red-50 text-red-600 font-bold text-xs">
-              {(thread.author.username || "A")[0].toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <CosmeticAvatar
+            avatarUrl={thread.author.avatar_url}
+            username={thread.author.username}
+            size={40}
+            border={thread.author.equip?.avatar_border}
+            className="border border-primary/10"
+            fallbackClassName="bg-red-50 text-red-600 text-xs"
+          />
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-sm text-foreground group-hover/author:underline truncate">
@@ -207,6 +212,7 @@ export function ThreadFeedCard({ thread, onReactionsChange }: ThreadFeedCardProp
             <Share2 className="h-3.5 w-3.5" />
           </Button>
         </div>
+      </div>
       </div>
     </article>
   );

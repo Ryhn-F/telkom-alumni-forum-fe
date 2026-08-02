@@ -32,16 +32,21 @@ import {
   Sparkles,
   Shield,
   ChevronRight,
+  ListChecks,
+  Store,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { SearchTrigger } from "@/components/SearchDialog";
+import { WalletChip } from "@/components/cosmetic/WalletChip";
 
 const sidebarNav = [
   { name: "Beranda", href: "/", icon: Home },
   { name: "Diskusi", href: "/threads", icon: MessageSquare },
   { name: "Papan Menfess", href: "/menfess", icon: StickyNote, badge: "ANONIM", requiresStudent: true },
   { name: "Papan Klasemen", href: "/leaderboard", icon: Trophy },
+  { name: "Misi Harian", href: "/missions", icon: ListChecks, requiresAuth: true },
+  { name: "Toko", href: "/shop", icon: Store, requiresAuth: true },
 ];
 
 export default function UserLayout({
@@ -73,6 +78,7 @@ export default function UserLayout({
 
             {/* Right Quick Actions */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {user && <WalletChip />}
               <NotificationDropdown />
               <Button
                 variant="ghost"
@@ -179,6 +185,7 @@ export default function UserLayout({
 
                 {sidebarNav.map((item) => {
                   if (item.requiresStudent && role?.name === "guru") return null;
+                  if (item.requiresAuth && !user) return null;
                   const isActive =
                     pathname === item.href ||
                     (item.href !== "/" && pathname.startsWith(item.href));

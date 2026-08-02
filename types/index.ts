@@ -81,10 +81,78 @@ export interface UploadResponse {
   file_type: string;
 }
 
+// ==================== Cosmetics & Tel-Credits ====================
+export type CosmeticSlot = "avatar_border" | "thread_bg" | "profile_bg";
+export type CosmeticSubType = "ring" | "decoration";
+export type CosmeticRenderType = "css" | "image";
+export type CosmeticStatus = "draft" | "published" | "retired";
+
+export interface CosmeticCSSPayload {
+  preset_key: string;
+}
+
+export interface CosmeticImagePayload {
+  animated_url: string;
+  static_url: string;
+}
+
+export interface Cosmetic {
+  id: number;
+  slot: CosmeticSlot;
+  sub_type?: CosmeticSubType;
+  render_type: CosmeticRenderType;
+  name: string;
+  payload: CosmeticCSSPayload | CosmeticImagePayload;
+  price: number;
+  min_rank?: string;
+  status: CosmeticStatus;
+}
+
+export interface UserEquip {
+  avatar_border: Cosmetic | null;
+  thread_bg: Cosmetic | null;
+  profile_bg: Cosmetic | null;
+}
+
+export interface InventoryItem {
+  cosmetic: Cosmetic;
+  purchased_at: string;
+}
+
+export interface WalletResponse {
+  balance: number;
+}
+
+export interface Mission {
+  id: number;
+  name: string;
+  kind: "daily" | "achievement";
+  action_type: string;
+  target: number;
+  reward: number;
+  progress: number;
+  status: "in_progress" | "claimable" | "claimed";
+}
+
+export interface ClaimMissionResponse {
+  reward: number;
+  new_balance: number;
+}
+
+export interface PurchaseErrorResponse {
+  error: "saldo_tidak_cukup" | "rank_tidak_cukup" | "sudah_dimiliki";
+  message: string;
+  balance?: number;
+  price?: number;
+  current_rank?: string;
+  min_rank?: string;
+}
+
 // ==================== Author ====================
 export interface Author {
   username: string;
   avatar_url?: string;
+  equip?: UserEquip | null;
 }
 
 // ==================== Thread ====================
@@ -256,6 +324,7 @@ export interface NotificationActor {
   id: string;
   username: string;
   avatar_url?: string;
+  equip?: UserEquip | null;
 }
 
 export interface Notification {
@@ -425,6 +494,7 @@ export interface LeaderboardEntry {
   role: string;
   position: number;
   gamification_status: GamificationStatus;
+  equip?: UserEquip | null;
 }
 
 export interface LeaderboardResponse {

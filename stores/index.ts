@@ -15,3 +15,5 @@ export {
 } from "./notification-store";
 
 export { useSearchStore } from "./search-store";
+
+export { useWalletStore } from "./wallet-store";

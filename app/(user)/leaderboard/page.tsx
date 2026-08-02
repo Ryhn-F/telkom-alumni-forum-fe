@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -431,12 +431,14 @@ function LeaderboardContent() {
 
                     {/* Avatar */}
                     <Link href={`/users/${entry.username}`}>
-                      <Avatar className="h-12 w-12 ring-2 ring-background hover:ring-primary/50 transition-all cursor-pointer">
-                        <AvatarImage src={entry.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                          {entry.username[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <CosmeticAvatar
+                        avatarUrl={entry.avatar_url}
+                        username={entry.username}
+                        size={48}
+                        border={entry.equip?.avatar_border}
+                        className="ring-2 ring-background hover:ring-primary/50 transition-all cursor-pointer"
+                        fallbackClassName="bg-primary/10 text-primary"
+                      />
                     </Link>
 
                     {/* User Info + Progress */}

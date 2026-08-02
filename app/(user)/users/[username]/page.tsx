@@ -14,7 +14,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
+import { ProfileBanner } from "@/components/cosmetic/ProfileBanner";
+import { getUserCosmetics } from "@/lib/cosmetic";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -37,7 +39,7 @@ import {
 import { GamificationCard } from "@/components/GamificationCard";
 import { FollowButton } from "@/components/FollowButton";
 import { FollowStatsCard } from "@/components/FollowStatsCard";
-import type { Thread, ThreadListResponse, PublicProfile } from "@/types";
+import type { Thread, ThreadListResponse, PublicProfile, UserEquip } from "@/types";
 
 // Helper untuk display role
 function getRoleDisplayName(roleName: string): string {
@@ -72,6 +74,7 @@ export default function UserProfilePage() {
   const username = params.username as string;
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [equip, setEquip] = useState<UserEquip | null>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
   const [threadsLoading, setThreadsLoading] = useState(true);
@@ -104,6 +107,7 @@ export default function UserProfilePage() {
         setIsFollowing(res.data.is_following || false);
         setFollowersCount(res.data.followers_count || 0);
         setFollowingCount(res.data.following_count || 0);
+        getUserCosmetics(username).then(setEquip).catch(() => setEquip(null));
       } catch (err: unknown) {
         console.error("Failed to fetch profile:", err);
         const error = err as { response?: { status?: number } };
@@ -267,24 +271,20 @@ export default function UserProfilePage() {
 
       {/* Kartu Profil Utama */}
       <Card className="overflow-hidden">
-        {/* Banner Gradient */}
-        <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5" />
+        <ProfileBanner cosmetic={equip?.profile_bg} />
 
         <CardContent className="relative pt-0">
           {/* Avatar yang overlap dengan banner */}
           <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 -mt-12">
             <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
-              <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
-                <AvatarImage src={profile.avatar_url} alt={profile.username} />
-                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                  {profile.username
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
+              <CosmeticAvatar
+                avatarUrl={profile.avatar_url}
+                username={profile.username}
+                size={96}
+                border={equip?.avatar_border}
+                className="border-4 border-background shadow-lg"
+                fallbackClassName="text-2xl bg-primary/10 text-primary"
+              />
 
               <div className="flex-1 text-center sm:text-left sm:pb-2">
                 <h2 className="text-2xl font-bold">{profile.username}</h2>

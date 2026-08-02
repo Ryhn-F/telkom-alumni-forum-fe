@@ -6,7 +6,7 @@ import { api } from "@/lib/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Crown, Medal, Flame, ArrowRight, Zap, Sparkles } from "lucide-react";
 import type { LeaderboardEntry, LeaderboardResponse, LeaderboardTimeframe } from "@/types";
@@ -73,12 +73,18 @@ function TopUserCard({
       <div className="flex flex-col items-center p-3 rounded-xl hover:bg-muted/50 transition-all cursor-pointer group">
         {/* Avatar with position badge */}
         <div className="relative mb-2">
-          <Avatar className={`h-14 w-14 ring-2 ${rank === 1 ? "ring-yellow-500" : rank === 2 ? "ring-slate-400" : rank === 3 ? "ring-amber-600" : "ring-border"} group-hover:ring-primary/50 transition-all`}>
-            <AvatarImage src={entry.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary font-bold">
-              {entry.username[0].toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          {/* Position ring (medal color) already carries meaning here, so a
+              CSS `ring` cosmetic would visually clash with it — only render
+              `decoration` cosmetics (they overflow outward, not a ring) in
+              this dense top-3 context. */}
+          <CosmeticAvatar
+            avatarUrl={entry.avatar_url}
+            username={entry.username}
+            size={56}
+            border={entry.equip?.avatar_border?.sub_type === "decoration" ? entry.equip.avatar_border : undefined}
+            className={`ring-2 ${rank === 1 ? "ring-yellow-500" : rank === 2 ? "ring-slate-400" : rank === 3 ? "ring-amber-600" : "ring-border"} group-hover:ring-primary/50 transition-all`}
+            fallbackClassName="bg-primary/10 text-primary"
+          />
           {getPositionBadge()}
         </div>
 
