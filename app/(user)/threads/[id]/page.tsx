@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
+import { ThreadBgTint } from "@/components/cosmetic/ThreadBgTint";
 import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
@@ -277,8 +278,9 @@ export default function ThreadDetailPage() {
   return (
     <div className="space-y-6">
       {/* Clean, minimal article-style card for thread detail */}
-      <Card className="overflow-hidden md:border md:shadow-sm border-0 shadow-none rounded-none md:rounded-xl">
-        <CardHeader className="pb-4">
+      <Card className="relative overflow-hidden md:border md:shadow-sm border-0 shadow-none rounded-none md:rounded-xl">
+        <ThreadBgTint cosmetic={thread.author.equip?.thread_bg} />
+        <CardHeader className="relative z-[1] pb-4">
           {/* Back button integrated with header */}
           <Button
             variant="ghost"
@@ -366,7 +368,7 @@ export default function ThreadDetailPage() {
             )}
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="relative z-[1] pt-6">
           {/* Article content with improved typography */}
           <div className="mb-8">
             <RichTextDisplay content={thread.content} />

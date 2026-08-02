@@ -13,7 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
+import { ProfileBanner } from "@/components/cosmetic/ProfileBanner";
+import { getUserCosmetics } from "@/lib/cosmetic";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -28,7 +30,7 @@ import {
   Users,
 } from "lucide-react";
 import { GamificationCard } from "@/components/GamificationCard";
-import type { Thread, ThreadListResponse, GamificationStatus } from "@/types";
+import type { Thread, ThreadListResponse, GamificationStatus, UserEquip } from "@/types";
 
 interface MyProfileResponse {
   gamification_status?: GamificationStatus;
@@ -47,6 +49,12 @@ export default function ProfilePage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5; // Show 5 per page
+  const [equip, setEquip] = useState<UserEquip | null>(null);
+
+  useEffect(() => {
+    if (!user?.username) return;
+    getUserCosmetics(user.username).then(setEquip).catch(() => setEquip(null));
+  }, [user?.username]);
 
   // Fetch gamification status & follow counts dari /api/profile/me
   useEffect(() => {
@@ -85,20 +93,18 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <Card>
+      <Card className="overflow-hidden">
+        <ProfileBanner cosmetic={equip?.profile_bg} />
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={user?.avatar_url} />
-              <AvatarFallback className="text-2xl">
-                {(profile?.full_name || user?.username || "U")
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
+            <CosmeticAvatar
+              avatarUrl={user?.avatar_url}
+              username={profile?.full_name || user?.username || "U"}
+              size={96}
+              border={equip?.avatar_border}
+              className="w-24 h-24"
+              fallbackClassName="text-2xl"
+            />
             <div className="flex-1 text-center sm:text-left">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
