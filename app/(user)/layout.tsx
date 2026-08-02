@@ -10,6 +10,7 @@ import { getRoleDisplayName } from "@/lib/auth";
 import { getToken } from "@/lib/cookies";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CosmeticAvatar } from "@/components/cosmetic/CosmeticAvatar";
 import { getUserCosmetics } from "@/lib/cosmetic";
 import type { UserEquip } from "@/types";
@@ -37,6 +38,7 @@ import {
   ChevronRight,
   ListChecks,
   Store,
+  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
@@ -62,6 +64,9 @@ export default function UserLayout({
   const { theme, setTheme } = useTheme();
   const { user, role, profile } = useAuthStore();
   const [equip, setEquip] = useState<UserEquip | null>(null);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const morePaths = ["/missions", "/shop", "/leaderboard"];
+  const isMoreActive = morePaths.some((p) => pathname.startsWith(p));
 
   useEffect(() => {
     if (!user?.username) return;
@@ -345,16 +350,15 @@ export default function UserLayout({
             </Link>
           )}
 
-          <Link href="/threads/new">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn("flex-col h-auto py-1.5 px-3", pathname === "/threads/new" && "text-red-600 font-semibold")}
-            >
-              <Plus className="h-5 w-5" />
-              <span className="text-[10px] mt-0.5">Buat</span>
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMoreOpen(true)}
+            className={cn("flex-col h-auto py-1.5 px-3", isMoreActive && "text-red-600 font-semibold")}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="text-[10px] mt-0.5">Lainnya</span>
+          </Button>
 
           <Link href={user ? "/profile" : "/login"}>
             <Button
@@ -368,6 +372,52 @@ export default function UserLayout({
           </Link>
         </div>
       </nav>
+
+      {/* Floating "Buat Diskusi" button — floats above the bottom nav rather
+          than taking one of its 5 slots, standard mobile compose-FAB pattern
+          (Twitter/X, Reddit). Desktop already has the sidebar CTA card. */}
+      <Link
+        href="/threads/new"
+        className="md:hidden fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg flex items-center justify-center transition-colors"
+        aria-label="Buat Diskusi Baru"
+      >
+        <Plus className="h-5 w-5" />
+      </Link>
+
+      {/* "Lainnya" bottom sheet — Papan Klasemen, Misi Harian, Toko share
+          this single entry point on mobile instead of each fighting for a
+          dedicated bottom-nav slot. */}
+      <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
+        <SheetContent side="bottom" className="md:hidden">
+          <SheetHeader>
+            <SheetTitle>Lainnya</SheetTitle>
+          </SheetHeader>
+          <div className="p-4 pt-0 space-y-1">
+            <Link href="/leaderboard" onClick={() => setIsMoreOpen(false)}>
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors">
+                <Trophy className="h-4 w-4 text-muted-foreground" />
+                Papan Klasemen
+              </div>
+            </Link>
+            {user && (
+              <>
+                <Link href="/missions" onClick={() => setIsMoreOpen(false)}>
+                  <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors">
+                    <ListChecks className="h-4 w-4 text-muted-foreground" />
+                    Misi Harian
+                  </div>
+                </Link>
+                <Link href="/shop" onClick={() => setIsMoreOpen(false)}>
+                  <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/60 transition-colors">
+                    <Store className="h-4 w-4 text-muted-foreground" />
+                    Toko
+                  </div>
+                </Link>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
