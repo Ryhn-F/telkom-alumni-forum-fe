@@ -187,7 +187,7 @@ export default function CosmeticsHarnessPage() {
         <div>
           <h2 className="text-xl font-bold">3. Header profil + slot decoration image</h2>
           <p className="text-sm text-muted-foreground">
-            Kotak decoration untuk avatar 96px = <strong>{DECORATION_BOX_96}px</strong> (rasio 1,2× dari riset baseline).
+            Kotak decoration untuk avatar 96px = <strong>{DECORATION_BOX_96}px</strong> (rasio 1,25×, dikunci tiket Kunci spek produksi aset).
             Upload PNG/APNG/WebP untuk lihat overflow-nya beneran, termasuk kalau filenya beranimasi — perilaku
             <code className="mx-1">mask-image</code> pada gambar beranimasi tidak dijamin spec manapun, jadi harus
             dibuktikan di sini, bukan diasumsikan.
