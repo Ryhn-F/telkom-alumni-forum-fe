@@ -154,34 +154,8 @@ export default function MenfessPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Privacy Banner */}
-      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-full">
-              <Lock className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                🔒 Student-Only Zone & 100% Anonim
-              </CardTitle>
-              <CardDescription className="mt-1">
-                Ruang khusus siswa. Guru tidak bisa akses, tidak bisa lihat, dan
-                tidak bisa posting. Privasi dijaga enkripsi, identitasmu
-                rahasia.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Eye className="h-4 w-4" />
-                🔍 Cek Cara Kerjanya & Source Code
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <Dialog>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 mt-5">
                   <Shield className="h-5 w-5 text-primary" />
@@ -351,22 +325,29 @@ export default function MenfessPage() {
                   </div>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
+        </DialogContent>
 
-      {/* Post Form */}
-      <Card className="border-red-100 dark:border-red-900/30 shadow-sm bg-gradient-to-br from-background via-background to-red-50/20 dark:to-red-950/10">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <StickyNote className="h-5 w-5 text-red-600" />
-            Tempel Pesan Rahasia di Papan
-          </CardTitle>
-          <CardDescription>
-            Tulis ungkapan, saran, atau curhatmu secara anonim. Identitasmu dijamin 100% aman & terenkripsi.
-          </CardDescription>
-        </CardHeader>
+        {/* Post Form */}
+        <Card className="border-red-100 dark:border-red-900/30 shadow-sm bg-gradient-to-br from-background via-background to-red-50/20 dark:to-red-950/10">
+          <CardHeader>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <StickyNote className="h-5 w-5 text-red-600" />
+                  Tempel Pesan Rahasia di Papan
+                </CardTitle>
+                <CardDescription>
+                  Tulis ungkapan, saran, atau curhatmu secara anonim. Identitasmu dijamin 100% aman & terenkripsi.
+                </CardDescription>
+              </div>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 shrink-0">
+                  <Eye className="h-4 w-4" />
+                  Cara Kerja
+                </Button>
+              </DialogTrigger>
+            </div>
+          </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -403,7 +384,8 @@ export default function MenfessPage() {
             </Button>
           </form>
         </CardContent>
-      </Card>
+        </Card>
+      </Dialog>
 
       {/* Menfess Whiteboard Grid */}
       <div className="space-y-4">

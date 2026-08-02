@@ -4,7 +4,6 @@ import { useTheme } from "next-themes";
 import { useHydration } from "@/hooks/use-hydration";
 import type { Cosmetic, CosmeticCSSPayload } from "@/types";
 import { THREAD_BG_ANIMATED_PRESETS, THREAD_BG_PRESETS } from "./thread-bg-presets";
-import "./thread-bg-animated.css";
 
 interface ThreadBgTintProps {
   cosmetic?: Cosmetic | null;

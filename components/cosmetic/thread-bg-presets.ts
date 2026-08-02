@@ -23,7 +23,7 @@ export const THREAD_BG_PRESETS: Record<string, { light: string; dark: string }> 
 };
 
 // Animated presets — moving gradients instead of a flat color. Rendered via
-// CSS class (see ./thread-bg-animated.css), not a color lookup, so they
+// CSS class (defined in app/globals.css), not a color lookup, so they
 // live in a separate keyed set ThreadBgTint checks first. Kept out of
 // THREAD_BG_PRESETS above so "is this preset_key animated?" stays a single
 // Set membership check rather than a shape-sniff on the value.
